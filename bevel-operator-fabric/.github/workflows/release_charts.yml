@@ -1,0 +1,49 @@
+name: Release Chart
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+    paths:
+      - 'chart/**'
+      - '.github/workflows/release_charts.yml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Install Helm
+        uses: azure/setup-helm@v3.3
+        with:
+          version: v3.8.1
+      - name: Install additional Helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+            go-version: "1.23.x"
+
+      - name: Generate CRDs
+        run: |
+            go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.16.4
+            make generate manifests
+            cp config/crd/bases/* chart/hlf-operator/templates/crds/
+
+      - name: Operator charts
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: chart
+          skip_existing: true

@@ -1,0 +1,213 @@
+image:
+  repository: hyperledger/fabric-peer
+  tag: amd64-2.2.0
+  pullPolicy: IfNotPresent
+
+istio:
+  port: 443
+  hosts: []
+  ingressGateway: ingressgateway
+
+traefik:
+  entryPoints: []
+  middlewares: []
+  hosts: []
+
+
+dockerSocketPath: /var/run/docker.sock
+
+envVars: []
+
+couchdbExporter:
+  enabled: false
+  image: "gesellix/couchdb-prometheus-exporter"
+  tag: "v30.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+fsServer:
+  image: "quay.io/kfsoftware/fs-peer"
+  tag: "amd64-2.2.0"
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: false
+  annotations: { }
+  path: /
+  hosts:
+    - hlf-peer.local
+  tls: [ ]
+
+rbac:
+  ns: default
+##################################
+## Peer configuration options    #
+##################################
+peer:
+  # Type of database ("goleveldb" or "CouchDB"):
+  databaseType: goleveldb
+  ## MSP ID of the Peer
+  mspID: Org1MSP
+  gossip:
+    bootstrap: ""
+    endpoint: ""
+    externalEndpoint: ""
+    orgLeader: "false"
+    useLeaderElection: "true"
+
+    reconnectInterval: "25s"
+    aliveExpirationTimeout: "25s"
+    aliveTimeInterval: "5s"
+    responseWaitTime: "2s"
+
+  tls:
+    server:
+      enabled: "true"
+    client:
+      enabled: "false"
+
+
+# Certificate: as 'cert.pem'
+cert: ""
+
+# Private key: as 'key.pem'
+key: ""
+hosts:
+  - 192.168.39.172
+  - peer0.org1.example.com
+
+# TLS secret: as 'tls.crt' and 'tls.key'
+tls:
+  cert: ""
+  key:  ""
+
+# CA Cert: as 'cacert.pem'
+cacert: ""
+
+# TLS root CA certificate: as 'cert.pem'
+tlsrootcert: ""
+
+couchdb:
+  external:
+    enabled: true
+    host: ""
+    port: ""
+  image: "couchdb"
+  tag: "3.1.1"
+  pullPolicy: IfNotPresent
+
+resources:
+  peer: {}
+  couchdbExporter:
+    limits:
+      cpu: 300m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  couchdb: {}
+  chaincode:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  proxy:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+replicas: 1
+nodeSelector: { }
+volumes: []
+peerVolumeMounts: [ ]
+tolerations: [ ]
+
+affinity: { }
+
+
+externalHost: peer0:443
+fullnameOverride: peer0
+hostAliases: [ ]
+service:
+  type: NodePort
+  portRequest: 7051
+  portEvent: 7053
+  portOperations: 9443
+
+persistence:
+  peer:
+    enabled: true
+    annotations: { }
+    storageClass:
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  couchdb:
+    enabled: true
+    annotations: { }
+    storageClass:
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  chaincode:
+    enabled: true
+    annotations: { }
+    storageClass:
+    accessMode: ReadWriteOnce
+    size: 1Gi
+logging:
+  level: debug
+  peer: debug
+  cauthdsl: warning
+  gossip: debug
+  grpc: error
+  ledger: debug
+  msp: debug
+  policies: warning
+
+externalChaincodeBuilder: false
+
+deliveryClientaddressOverrides: []
+
+externalBuilders: [ ]
+
+proxy:
+  enabled: false
+  image: "ghcr.io/hyperledger-labs/grpc-web"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  istio:
+    port: 443
+    hosts: []
+    ingressGateway: ""
+
+serviceMonitor:
+  ## If true, a ServiceMonitor CRD is created for a prometheus operator
+  ## https://github.com/coreos/prometheus-operator
+  ##
+  enabled: false
+  #  namespace: monitoring
+  labels: { }
+  interval: 10s
+  scrapeTimeout: 10s
+  scheme: http
+  relabelings: [ ]
+  targetLabels: [ ]
+  metricRelabelings: [ ]
+  sampleLimit: 0
+
+couchdbUsername: "couchdb"
+couchdbPassword: "couchdb"
+opsTLS:
+  key: ""
+  cert: ""
+gatewayApi:
+  port: 443
+  hosts: []
+  gatewayName: "hlf-gateway"
+  gatewayNamespace: ""
+

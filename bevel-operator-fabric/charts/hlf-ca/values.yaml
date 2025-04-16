@@ -1,0 +1,29 @@
+serviceMonitor:
+  ## If true, a ServiceMonitor CRD is created for a prometheus operator
+  ## https://github.com/coreos/prometheus-operator
+  ##
+  enabled: false
+  #  namespace: monitoring
+  labels: {}
+  interval: 10s
+  scrapeTimeout: 10s
+  scheme: http
+  relabelings: []
+  targetLabels: []
+  metricRelabelings: []
+  sampleLimit: 0
+
+imagePullSecrets: []
+
+istio:
+  port: 443
+  hosts: []
+  ingressGateway: ingressgateway
+
+gatewayApi:
+  port: 443
+  hosts: []
+  gatewayName: ""
+  gatewayNamespace: ""
+
+envVars: []

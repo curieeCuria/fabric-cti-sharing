@@ -1,0 +1,45 @@
+{{- range $index, $vv := .Values.nodes }}
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricOrdererNode
+metadata:
+  name: {{ include "hlf-ord.fullname" $ }}--ord-{{$index}}
+  labels:
+  {{- include "labels.standard" $ | nindent 6 }}
+spec:
+  image: {{ $.Values.image.repository}}
+  tag: {{ $.Values.image.tag}}
+  pullPolicy: {{ $.Values.image.pullPolicy}}
+  mspID: {{ $.Values.mspID}}
+  genesis: {{ $.Values.genesis}}
+  storage:
+    accessMode: {{ $.Values.storage.accessMode}}
+    storageClass: {{ $.Values.storage.storageClass}}
+    size: {{ $.Values.storage.size}}
+  service:
+    nodePortRequest: {{ $vv.service.nodePortRequest }}
+    type: {{ $vv.service.type }}
+  istio:
+    hosts: {{$vv.istio.hosts}}
+    port: {{$vv.istio.port}}
+  bootstrapMethod: {{ $vv.bootstrapMethod }}
+  channelParticipationEnabled: {{ $vv.channelParticipationEnabled }}
+  secret:
+    enrollment:
+      component:
+        cahost: {{$vv.enrollment.component.cahost}}
+        caname: {{$vv.enrollment.component.caname}}
+        caport: {{$vv.enrollment.component.caport}}
+        catls:
+          cacert: {{ $vv.enrollment.component.catls.cacert }}
+        enrollid: {{$vv.enrollment.component.enrollid}}
+        enrollsecret: {{$vv.enrollment.component.enrollsecret}}
+      tls:
+        cahost: {{$vv.enrollment.tls.cahost}}
+        caname: {{$vv.enrollment.tls.caname}}
+        caport: {{$vv.enrollment.tls.caport}}
+        catls:
+          cacert: {{$vv.enrollment.tls.catls.cacert}}
+        enrollid: {{$vv.enrollment.tls.enrollid}}
+        enrollsecret: {{$vv.enrollment.tls.enrollsecret}}
+---
+  {{- end }}

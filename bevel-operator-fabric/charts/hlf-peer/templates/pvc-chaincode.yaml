@@ -1,0 +1,25 @@
+{{- if and .Values.persistence.chaincode.enabled (not .Values.persistence.chaincode.existingClaim) .Values.externalChaincodeBuilder }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "hlf-peer.fullname" . }}--chaincode
+  labels:
+{{ include "labels.standard" . | indent 4 }}
+{{- if .Values.persistence.chaincode.annotations }}
+  annotations:
+{{ toYaml .Values.persistence.chaincode.annotations | indent 4 }}
+{{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.chaincode.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.chaincode.size | quote }}
+  {{- if .Values.persistence.chaincode.storageClass }}
+  {{- if (eq "-" .Values.persistence.chaincode.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ .Values.persistence.chaincode.storageClass }}"
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,1610 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: fabriccas.hlf.kungfusoftware.es
+spec:
+  group: hlf.kungfusoftware.es
+  names:
+    kind: FabricCA
+    listKind: FabricCAList
+    plural: fabriccas
+    shortNames:
+    - ca
+    singular: ca
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: State
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              affinity:
+                nullable: true
+                properties:
+                  nodeAffinity:
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            preference:
+                              properties:
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            weight:
+                              format: int32
+                              type: integer
+                          required:
+                          - preference
+                          - weight
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            type: array
+                            x-kubernetes-list-type: atomic
+                        required:
+                        - nodeSelectorTerms
+                        type: object
+                        x-kubernetes-map-type: atomic
+                    type: object
+                  podAffinity:
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            podAffinityTerm:
+                              properties:
+                                labelSelector:
+                                  properties:
+                                    matchExpressions:
+                                      items:
+                                        properties:
+                                          key:
+                                            type: string
+                                          operator:
+                                            type: string
+                                          values:
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                matchLabelKeys:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                mismatchLabelKeys:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                namespaceSelector:
+                                  properties:
+                                    matchExpressions:
+                                      items:
+                                        properties:
+                                          key:
+                                            type: string
+                                          operator:
+                                            type: string
+                                          values:
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                namespaces:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                topologyKey:
+                                  type: string
+                              required:
+                              - topologyKey
+                              type: object
+                            weight:
+                              format: int32
+                              type: integer
+                          required:
+                          - podAffinityTerm
+                          - weight
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            labelSelector:
+                              properties:
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                matchLabels:
+                                  additionalProperties:
+                                    type: string
+                                  type: object
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            matchLabelKeys:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            mismatchLabelKeys:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            namespaceSelector:
+                              properties:
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                matchLabels:
+                                  additionalProperties:
+                                    type: string
+                                  type: object
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            namespaces:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            topologyKey:
+                              type: string
+                          required:
+                          - topologyKey
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                    type: object
+                  podAntiAffinity:
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            podAffinityTerm:
+                              properties:
+                                labelSelector:
+                                  properties:
+                                    matchExpressions:
+                                      items:
+                                        properties:
+                                          key:
+                                            type: string
+                                          operator:
+                                            type: string
+                                          values:
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                matchLabelKeys:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                mismatchLabelKeys:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                namespaceSelector:
+                                  properties:
+                                    matchExpressions:
+                                      items:
+                                        properties:
+                                          key:
+                                            type: string
+                                          operator:
+                                            type: string
+                                          values:
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                namespaces:
+                                  items:
+                                    type: string
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                topologyKey:
+                                  type: string
+                              required:
+                              - topologyKey
+                              type: object
+                            weight:
+                              format: int32
+                              type: integer
+                          required:
+                          - podAffinityTerm
+                          - weight
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            labelSelector:
+                              properties:
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                matchLabels:
+                                  additionalProperties:
+                                    type: string
+                                  type: object
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            matchLabelKeys:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            mismatchLabelKeys:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            namespaceSelector:
+                              properties:
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      operator:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                matchLabels:
+                                  additionalProperties:
+                                    type: string
+                                  type: object
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            namespaces:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                            topologyKey:
+                              type: string
+                          required:
+                          - topologyKey
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                    type: object
+                type: object
+              ca:
+                properties:
+                  affiliations:
+                    items:
+                      properties:
+                        departments:
+                          items:
+                            type: string
+                          type: array
+                        name:
+                          type: string
+                      required:
+                      - departments
+                      - name
+                      type: object
+                    nullable: true
+                    type: array
+                  bccsp:
+                    properties:
+                      default:
+                        default: SW
+                        type: string
+                      sw:
+                        properties:
+                          hash:
+                            default: SHA2
+                            type: string
+                          security:
+                            default: "256"
+                            type: string
+                        required:
+                        - hash
+                        - security
+                        type: object
+                    required:
+                    - default
+                    - sw
+                    type: object
+                  ca:
+                    nullable: true
+                    properties:
+                      cert:
+                        type: string
+                      chain:
+                        type: string
+                      key:
+                        type: string
+                      secret:
+                        nullable: true
+                        properties:
+                          name:
+                            nullable: true
+                            type: string
+                        type: object
+                    required:
+                    - cert
+                    - chain
+                    - key
+                    type: object
+                  cfg:
+                    properties:
+                      affiliations:
+                        properties:
+                          allowRemove:
+                            default: true
+                            type: boolean
+                        required:
+                        - allowRemove
+                        type: object
+                      identities:
+                        properties:
+                          allowRemove:
+                            default: true
+                            type: boolean
+                        required:
+                        - allowRemove
+                        type: object
+                    required:
+                    - affiliations
+                    - identities
+                    type: object
+                  crl:
+                    properties:
+                      expiry:
+                        default: 24h
+                        type: string
+                    required:
+                    - expiry
+                    type: object
+                  csr:
+                    properties:
+                      ca:
+                        properties:
+                          expiry:
+                            default: 131400h
+                            type: string
+                          pathLength:
+                            default: 0
+                            type: integer
+                        required:
+                        - expiry
+                        - pathLength
+                        type: object
+                      cn:
+                        default: ca
+                        type: string
+                      hosts:
+                        default:
+                        - localhost
+                        items:
+                          type: string
+                        type: array
+                      names:
+                        items:
+                          properties:
+                            C:
+                              default: US
+                              type: string
+                            L:
+                              default: Raleigh
+                              type: string
+                            O:
+                              default: Hyperledger
+                              type: string
+                            OU:
+                              default: Fabric
+                              type: string
+                            ST:
+                              default: North Carolina
+                              type: string
+                          required:
+                          - C
+                          - L
+                          - O
+                          - OU
+                          - ST
+                          type: object
+                        type: array
+                    required:
+                    - ca
+                    - cn
+                    - hosts
+                    - names
+                    type: object
+                  intermediate:
+                    properties:
+                      parentServer:
+                        properties:
+                          caName:
+                            type: string
+                          url:
+                            type: string
+                        required:
+                        - caName
+                        - url
+                        type: object
+                    required:
+                    - parentServer
+                    type: object
+                  name:
+                    type: string
+                  registry:
+                    properties:
+                      identities:
+                        items:
+                          properties:
+                            affiliation:
+                              default: ""
+                              type: string
+                            attrs:
+                              properties:
+                                hf.AffiliationMgr:
+                                  default: true
+                                  type: boolean
+                                hf.GenCRL:
+                                  default: true
+                                  type: boolean
+                                hf.IntermediateCA:
+                                  default: true
+                                  type: boolean
+                                hf.Registrar.Attributes:
+                                  default: '*'
+                                  type: string
+                                hf.Registrar.DelegateRoles:
+                                  default: '*'
+                                  type: string
+                                hf.Registrar.Roles:
+                                  default: '*'
+                                  type: string
+                                hf.Revoker:
+                                  default: true
+                                  type: boolean
+                              required:
+                              - hf.AffiliationMgr
+                              - hf.GenCRL
+                              - hf.IntermediateCA
+                              - hf.Registrar.Attributes
+                              - hf.Registrar.DelegateRoles
+                              - hf.Registrar.Roles
+                              - hf.Revoker
+                              type: object
+                            name:
+                              type: string
+                            pass:
+                              type: string
+                            type:
+                              type: string
+                          required:
+                          - affiliation
+                          - attrs
+                          - name
+                          - pass
+                          - type
+                          type: object
+                        type: array
+                      max_enrollments:
+                        type: integer
+                    required:
+                    - identities
+                    - max_enrollments
+                    type: object
+                  signing:
+                    nullable: true
+                    properties:
+                      default:
+                        properties:
+                          expiry:
+                            default: 8760h
+                            type: string
+                          usage:
+                            default:
+                            - digital signature
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - expiry
+                        - usage
+                        type: object
+                      profiles:
+                        properties:
+                          ca:
+                            properties:
+                              caconstraint:
+                                properties:
+                                  isCA:
+                                    default: true
+                                    type: boolean
+                                  maxPathLen:
+                                    default: 0
+                                    type: integer
+                                required:
+                                - isCA
+                                - maxPathLen
+                                type: object
+                              expiry:
+                                default: 43800h
+                                type: string
+                              usage:
+                                default:
+                                - cert sign
+                                - crl sign
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - caconstraint
+                            - expiry
+                            - usage
+                            type: object
+                          tls:
+                            properties:
+                              expiry:
+                                default: 8760h
+                                type: string
+                              usage:
+                                default:
+                                - signing
+                                - key encipherment
+                                - server auth
+                                - client auth
+                                - key agreement
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - expiry
+                            - usage
+                            type: object
+                        required:
+                        - ca
+                        - tls
+                        type: object
+                    required:
+                    - default
+                    - profiles
+                    type: object
+                  subject:
+                    properties:
+                      C:
+                        default: US
+                        type: string
+                      L:
+                        default: Raleigh
+                        type: string
+                      O:
+                        default: Hyperledger
+                        type: string
+                      OU:
+                        default: Fabric
+                        type: string
+                      ST:
+                        default: North Carolina
+                        type: string
+                      cn:
+                        default: ca
+                        type: string
+                    required:
+                    - C
+                    - L
+                    - O
+                    - OU
+                    - ST
+                    - cn
+                    type: object
+                required:
+                - bccsp
+                - cfg
+                - crl
+                - csr
+                - intermediate
+                - name
+                - registry
+                - subject
+                type: object
+              clrSizeLimit:
+                default: 512000
+                type: integer
+              cors:
+                properties:
+                  enabled:
+                    default: false
+                    type: boolean
+                  origins:
+                    items:
+                      type: string
+                    type: array
+                required:
+                - enabled
+                - origins
+                type: object
+              db:
+                properties:
+                  datasource:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - datasource
+                - type
+                type: object
+              debug:
+                default: false
+                type: boolean
+              env:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                    valueFrom:
+                      properties:
+                        configMapKeyRef:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              default: ""
+                              type: string
+                            optional:
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        fieldRef:
+                          properties:
+                            apiVersion:
+                              type: string
+                            fieldPath:
+                              type: string
+                          required:
+                          - fieldPath
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        resourceFieldRef:
+                          properties:
+                            containerName:
+                              type: string
+                            divisor:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            resource:
+                              type: string
+                          required:
+                          - resource
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        secretKeyRef:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              default: ""
+                              type: string
+                            optional:
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                      type: object
+                  required:
+                  - name
+                  type: object
+                nullable: true
+                type: array
+              gatewayApi:
+                nullable: true
+                properties:
+                  gatewayName:
+                    type: string
+                  gatewayNamespace:
+                    type: string
+                  hosts:
+                    items:
+                      type: string
+                    nullable: true
+                    type: array
+                  port:
+                    nullable: true
+                    type: integer
+                required:
+                - gatewayName
+                - gatewayNamespace
+                type: object
+              hosts:
+                items:
+                  type: string
+                minItems: 1
+                type: array
+              image:
+                minLength: 1
+                type: string
+              imagePullSecrets:
+                items:
+                  properties:
+                    name:
+                      default: ""
+                      type: string
+                  type: object
+                  x-kubernetes-map-type: atomic
+                nullable: true
+                type: array
+              istio:
+                nullable: true
+                properties:
+                  hosts:
+                    items:
+                      type: string
+                    nullable: true
+                    type: array
+                  ingressGateway:
+                    type: string
+                  port:
+                    nullable: true
+                    type: integer
+                required:
+                - ingressGateway
+                type: object
+              metrics:
+                properties:
+                  provider:
+                    default: disabled
+                    type: string
+                  statsd:
+                    properties:
+                      address:
+                        type: string
+                      network:
+                        default: udp
+                        enum:
+                        - udp
+                        - tcp
+                        type: string
+                      prefix:
+                        default: ""
+                        type: string
+                      writeInterval:
+                        default: 10s
+                        type: string
+                    required:
+                    - network
+                    type: object
+                required:
+                - provider
+                type: object
+              nodeSelector:
+                nullable: true
+                properties:
+                  nodeSelectorTerms:
+                    items:
+                      properties:
+                        matchExpressions:
+                          items:
+                            properties:
+                              key:
+                                type: string
+                              operator:
+                                type: string
+                              values:
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: atomic
+                            required:
+                            - key
+                            - operator
+                            type: object
+                          type: array
+                          x-kubernetes-list-type: atomic
+                        matchFields:
+                          items:
+                            properties:
+                              key:
+                                type: string
+                              operator:
+                                type: string
+                              values:
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: atomic
+                            required:
+                            - key
+                            - operator
+                            type: object
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    type: array
+                    x-kubernetes-list-type: atomic
+                required:
+                - nodeSelectorTerms
+                type: object
+                x-kubernetes-map-type: atomic
+              podAnnotations:
+                additionalProperties:
+                  type: string
+                default: {}
+                nullable: true
+                type: object
+              podLabels:
+                additionalProperties:
+                  type: string
+                default: {}
+                nullable: true
+                type: object
+              resources:
+                properties:
+                  claims:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        request:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                    x-kubernetes-list-map-keys:
+                    - name
+                    x-kubernetes-list-type: map
+                  limits:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    type: object
+                  requests:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    type: object
+                type: object
+              rootCA:
+                properties:
+                  subject:
+                    properties:
+                      C:
+                        default: US
+                        type: string
+                      L:
+                        default: Raleigh
+                        type: string
+                      O:
+                        default: Hyperledger
+                        type: string
+                      OU:
+                        default: Fabric
+                        type: string
+                      ST:
+                        default: North Carolina
+                        type: string
+                      cn:
+                        default: ca
+                        type: string
+                    required:
+                    - C
+                    - L
+                    - O
+                    - OU
+                    - ST
+                    - cn
+                    type: object
+                required:
+                - subject
+                type: object
+              service:
+                properties:
+                  type:
+                    type: string
+                required:
+                - type
+                type: object
+              serviceMonitor:
+                nullable: true
+                properties:
+                  enabled:
+                    default: false
+                    type: boolean
+                  interval:
+                    default: 10s
+                    type: string
+                  labels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  sampleLimit:
+                    default: 0
+                    type: integer
+                  scrapeTimeout:
+                    default: 10s
+                    type: string
+                required:
+                - enabled
+                - interval
+                - sampleLimit
+                - scrapeTimeout
+                type: object
+              storage:
+                properties:
+                  accessMode:
+                    default: ReadWriteOnce
+                    type: string
+                  size:
+                    default: 5Gi
+                    type: string
+                  storageClass:
+                    default: ""
+                    type: string
+                required:
+                - accessMode
+                - size
+                type: object
+              tlsCA:
+                properties:
+                  affiliations:
+                    items:
+                      properties:
+                        departments:
+                          items:
+                            type: string
+                          type: array
+                        name:
+                          type: string
+                      required:
+                      - departments
+                      - name
+                      type: object
+                    nullable: true
+                    type: array
+                  bccsp:
+                    properties:
+                      default:
+                        default: SW
+                        type: string
+                      sw:
+                        properties:
+                          hash:
+                            default: SHA2
+                            type: string
+                          security:
+                            default: "256"
+                            type: string
+                        required:
+                        - hash
+                        - security
+                        type: object
+                    required:
+                    - default
+                    - sw
+                    type: object
+                  ca:
+                    nullable: true
+                    properties:
+                      cert:
+                        type: string
+                      chain:
+                        type: string
+                      key:
+                        type: string
+                      secret:
+                        nullable: true
+                        properties:
+                          name:
+                            nullable: true
+                            type: string
+                        type: object
+                    required:
+                    - cert
+                    - chain
+                    - key
+                    type: object
+                  cfg:
+                    properties:
+                      affiliations:
+                        properties:
+                          allowRemove:
+                            default: true
+                            type: boolean
+                        required:
+                        - allowRemove
+                        type: object
+                      identities:
+                        properties:
+                          allowRemove:
+                            default: true
+                            type: boolean
+                        required:
+                        - allowRemove
+                        type: object
+                    required:
+                    - affiliations
+                    - identities
+                    type: object
+                  crl:
+                    properties:
+                      expiry:
+                        default: 24h
+                        type: string
+                    required:
+                    - expiry
+                    type: object
+                  csr:
+                    properties:
+                      ca:
+                        properties:
+                          expiry:
+                            default: 131400h
+                            type: string
+                          pathLength:
+                            default: 0
+                            type: integer
+                        required:
+                        - expiry
+                        - pathLength
+                        type: object
+                      cn:
+                        default: ca
+                        type: string
+                      hosts:
+                        default:
+                        - localhost
+                        items:
+                          type: string
+                        type: array
+                      names:
+                        items:
+                          properties:
+                            C:
+                              default: US
+                              type: string
+                            L:
+                              default: Raleigh
+                              type: string
+                            O:
+                              default: Hyperledger
+                              type: string
+                            OU:
+                              default: Fabric
+                              type: string
+                            ST:
+                              default: North Carolina
+                              type: string
+                          required:
+                          - C
+                          - L
+                          - O
+                          - OU
+                          - ST
+                          type: object
+                        type: array
+                    required:
+                    - ca
+                    - cn
+                    - hosts
+                    - names
+                    type: object
+                  intermediate:
+                    properties:
+                      parentServer:
+                        properties:
+                          caName:
+                            type: string
+                          url:
+                            type: string
+                        required:
+                        - caName
+                        - url
+                        type: object
+                    required:
+                    - parentServer
+                    type: object
+                  name:
+                    type: string
+                  registry:
+                    properties:
+                      identities:
+                        items:
+                          properties:
+                            affiliation:
+                              default: ""
+                              type: string
+                            attrs:
+                              properties:
+                                hf.AffiliationMgr:
+                                  default: true
+                                  type: boolean
+                                hf.GenCRL:
+                                  default: true
+                                  type: boolean
+                                hf.IntermediateCA:
+                                  default: true
+                                  type: boolean
+                                hf.Registrar.Attributes:
+                                  default: '*'
+                                  type: string
+                                hf.Registrar.DelegateRoles:
+                                  default: '*'
+                                  type: string
+                                hf.Registrar.Roles:
+                                  default: '*'
+                                  type: string
+                                hf.Revoker:
+                                  default: true
+                                  type: boolean
+                              required:
+                              - hf.AffiliationMgr
+                              - hf.GenCRL
+                              - hf.IntermediateCA
+                              - hf.Registrar.Attributes
+                              - hf.Registrar.DelegateRoles
+                              - hf.Registrar.Roles
+                              - hf.Revoker
+                              type: object
+                            name:
+                              type: string
+                            pass:
+                              type: string
+                            type:
+                              type: string
+                          required:
+                          - affiliation
+                          - attrs
+                          - name
+                          - pass
+                          - type
+                          type: object
+                        type: array
+                      max_enrollments:
+                        type: integer
+                    required:
+                    - identities
+                    - max_enrollments
+                    type: object
+                  signing:
+                    nullable: true
+                    properties:
+                      default:
+                        properties:
+                          expiry:
+                            default: 8760h
+                            type: string
+                          usage:
+                            default:
+                            - digital signature
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - expiry
+                        - usage
+                        type: object
+                      profiles:
+                        properties:
+                          ca:
+                            properties:
+                              caconstraint:
+                                properties:
+                                  isCA:
+                                    default: true
+                                    type: boolean
+                                  maxPathLen:
+                                    default: 0
+                                    type: integer
+                                required:
+                                - isCA
+                                - maxPathLen
+                                type: object
+                              expiry:
+                                default: 43800h
+                                type: string
+                              usage:
+                                default:
+                                - cert sign
+                                - crl sign
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - caconstraint
+                            - expiry
+                            - usage
+                            type: object
+                          tls:
+                            properties:
+                              expiry:
+                                default: 8760h
+                                type: string
+                              usage:
+                                default:
+                                - signing
+                                - key encipherment
+                                - server auth
+                                - client auth
+                                - key agreement
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - expiry
+                            - usage
+                            type: object
+                        required:
+                        - ca
+                        - tls
+                        type: object
+                    required:
+                    - default
+                    - profiles
+                    type: object
+                  subject:
+                    properties:
+                      C:
+                        default: US
+                        type: string
+                      L:
+                        default: Raleigh
+                        type: string
+                      O:
+                        default: Hyperledger
+                        type: string
+                      OU:
+                        default: Fabric
+                        type: string
+                      ST:
+                        default: North Carolina
+                        type: string
+                      cn:
+                        default: ca
+                        type: string
+                    required:
+                    - C
+                    - L
+                    - O
+                    - OU
+                    - ST
+                    - cn
+                    type: object
+                required:
+                - bccsp
+                - cfg
+                - crl
+                - csr
+                - intermediate
+                - name
+                - registry
+                - subject
+                type: object
+              tolerations:
+                items:
+                  properties:
+                    effect:
+                      type: string
+                    key:
+                      type: string
+                    operator:
+                      type: string
+                    tolerationSeconds:
+                      format: int64
+                      type: integer
+                    value:
+                      type: string
+                  type: object
+                nullable: true
+                type: array
+              traefik:
+                nullable: true
+                properties:
+                  entryPoints:
+                    items:
+                      type: string
+                    type: array
+                  hosts:
+                    items:
+                      type: string
+                    nullable: true
+                    type: array
+                  middlewares:
+                    items:
+                      properties:
+                        name:
+                          minLength: 1
+                          type: string
+                        namespace:
+                          minLength: 1
+                          type: string
+                      required:
+                      - name
+                      - namespace
+                      type: object
+                    nullable: true
+                    type: array
+                required:
+                - entryPoints
+                type: object
+              version:
+                minLength: 1
+                type: string
+            required:
+            - ca
+            - clrSizeLimit
+            - cors
+            - db
+            - debug
+            - hosts
+            - image
+            - metrics
+            - resources
+            - rootCA
+            - service
+            - storage
+            - tlsCA
+            - version
+            type: object
+          status:
+            properties:
+              ca_cert:
+                type: string
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+              message:
+                type: string
+              nodePort:
+                type: integer
+              status:
+                type: string
+              tls_cert:
+                type: string
+              tlsca_cert:
+                type: string
+            required:
+            - ca_cert
+            - conditions
+            - message
+            - status
+            - tls_cert
+            - tlsca_cert
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

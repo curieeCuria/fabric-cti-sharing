@@ -1,0 +1,103 @@
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricOrderingService
+metadata:
+  name: orderingservice
+spec:
+  image: "hyperledger/fabric-orderer"
+  tag: "amd64-2.3.0"
+  mspID: "OrdererMSP"
+  enrollment:
+    component:
+      cahost: 172.24.0.2
+      caname: ca
+      caport: 31753
+      catls:
+        cacert: |-
+          LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNaRENDQWdxZ0F3SUJBZ0lSQVBabzBQWUxS
+          cVZUeFpxQXM0ZHB1dFV3Q2dZSUtvWkl6ajBFQXdJd1hURUwKTUFrR0ExVUVCaE1DUlZNeEVUQVBC
+          Z05WQkFjVENFRnNhV05oYm5SbE1SRXdEd1lEVlFRSkV3aEJiR2xqWVc1MApaVEVaTUJjR0ExVUVD
+          aE1RUzNWdVp5QkdkU0JUYjJaMGQyRnlaVEVOTUFzR0ExVUVDeE1FVkdWamFEQWVGdzB5Ck1ERXlN
+          REV5TWpJME1UTmFGdzB6TURFeU1ESXlNakkwTVROYU1GMHhDekFKQmdOVkJBWVRBa1ZUTVJFd0R3
+          WUQKVlFRSEV3aEJiR2xqWVc1MFpURVJNQThHQTFVRUNSTUlRV3hwWTJGdWRHVXhHVEFYQmdOVkJB
+          b1RFRXQxYm1jZwpSblVnVTI5bWRIZGhjbVV4RFRBTEJnTlZCQXNUQkZSbFkyZ3dXVEFUQmdjcWhr
+          ak9QUUlCQmdncWhrak9QUU1CCkJ3TkNBQVF6ZXFPQU9QWmVoTjZEL3g5cWROU1JnUUJVVmYzNjQx
+          SVhDbXZFbkk2YkxNQmY5dEdRcGoySkdJY1UKQnU2Uys3OEVLMVFmcER3WHFPNGdTUTBuOVp2Zm80
+          R3FNSUduTUE0R0ExVWREd0VCL3dRRUF3SUJwakFkQmdOVgpIU1VFRmpBVUJnZ3JCZ0VGQlFjREFn
+          WUlLd1lCQlFVSEF3RXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QXBCZ05WCkhRNEVJZ1FnbE9Gc09P
+          UXMwbk8rRldobHJKbjNoTk50em5YMkNSeFIrQUl2ZzlXcWJMa3dPZ1lEVlIwUkJETXcKTVlJSmJH
+          OWpZV3hvYjNOMGdnZHZjbWN4TFdOaGdnOXZjbWN4TFdOaExtUmxabUYxYkhTSEJIOEFBQUdIQkt3
+          WQpBQUl3Q2dZSUtvWkl6ajBFQXdJRFNBQXdSUUloQUo2b1ZRZ2ZVdVZ6UVpuT1FiREtvOXZlOVVj
+          NTU2OFNINDI4CmlWRytQUzZ2QWlBaEdZZ0VzM2pTNWhjSFdkYzlTa3hkUnRTa1dyYnkwRXp1REUy
+          cWF0YjBTQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+      enrollid: "orderer"
+      enrollsecret: "ordererpw"
+    tls:
+      cahost: 172.24.0.2
+      caname: ca
+      caport: 31753
+      catls:
+        cacert: |-
+          LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNaRENDQWdxZ0F3SUJBZ0lSQVBabzBQWUxS
+          cVZUeFpxQXM0ZHB1dFV3Q2dZSUtvWkl6ajBFQXdJd1hURUwKTUFrR0ExVUVCaE1DUlZNeEVUQVBC
+          Z05WQkFjVENFRnNhV05oYm5SbE1SRXdEd1lEVlFRSkV3aEJiR2xqWVc1MApaVEVaTUJjR0ExVUVD
+          aE1RUzNWdVp5QkdkU0JUYjJaMGQyRnlaVEVOTUFzR0ExVUVDeE1FVkdWamFEQWVGdzB5Ck1ERXlN
+          REV5TWpJME1UTmFGdzB6TURFeU1ESXlNakkwTVROYU1GMHhDekFKQmdOVkJBWVRBa1ZUTVJFd0R3
+          WUQKVlFRSEV3aEJiR2xqWVc1MFpURVJNQThHQTFVRUNSTUlRV3hwWTJGdWRHVXhHVEFYQmdOVkJB
+          b1RFRXQxYm1jZwpSblVnVTI5bWRIZGhjbVV4RFRBTEJnTlZCQXNUQkZSbFkyZ3dXVEFUQmdjcWhr
+          ak9QUUlCQmdncWhrak9QUU1CCkJ3TkNBQVF6ZXFPQU9QWmVoTjZEL3g5cWROU1JnUUJVVmYzNjQx
+          SVhDbXZFbkk2YkxNQmY5dEdRcGoySkdJY1UKQnU2Uys3OEVLMVFmcER3WHFPNGdTUTBuOVp2Zm80
+          R3FNSUduTUE0R0ExVWREd0VCL3dRRUF3SUJwakFkQmdOVgpIU1VFRmpBVUJnZ3JCZ0VGQlFjREFn
+          WUlLd1lCQlFVSEF3RXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QXBCZ05WCkhRNEVJZ1FnbE9Gc09P
+          UXMwbk8rRldobHJKbjNoTk50em5YMkNSeFIrQUl2ZzlXcWJMa3dPZ1lEVlIwUkJETXcKTVlJSmJH
+          OWpZV3hvYjNOMGdnZHZjbWN4TFdOaGdnOXZjbWN4TFdOaExtUmxabUYxYkhTSEJIOEFBQUdIQkt3
+          WQpBQUl3Q2dZSUtvWkl6ajBFQXdJRFNBQXdSUUloQUo2b1ZRZ2ZVdVZ6UVpuT1FiREtvOXZlOVVj
+          NTU2OFNINDI4CmlWRytQUzZ2QWlBaEdZZ0VzM2pTNWhjSFdkYzlTa3hkUnRTa1dyYnkwRXp1REUy
+          cWF0YjBTQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+      enrollid: "orderer"
+      enrollsecret: "ordererpw"
+      csr:
+        hosts: [ ]
+  nodes:
+    - id: "orderer0"
+      enrollment:
+        tls:
+          csr:
+            hosts:
+              - "orderer.example.com"
+    - id: "orderer1"
+      enrollment:
+        tls:
+          csr:
+            hosts:
+              - "orderer1.example.com"
+    - id: "orderer2"
+      enrollment:
+        tls:
+          csr:
+            hosts:
+              - "orderer2.example.com"
+  service:
+    type: NodePort
+  storage:
+    size: 30Gi
+    storageClass: "standard"
+    accessMode: "ReadWriteOnce"
+  systemChannel:
+    name: "system-channel"
+    config:
+      absoluteMaxBytes: 10485760
+      applicationCapabilities:
+        V2_0: true
+      batchTimeout: 2s
+      channelCapabilities:
+        V2_0: true
+      electionTick: 10
+      heartbeatTick: 1
+      maxInflightBlocks: 5
+      maxMessageCount: 500
+      ordererCapabilities:
+        V2_0: true
+      preferredMaxBytes: 2097152
+      snapshotIntervalSize: 19
+      tickInterval: 500ms
+

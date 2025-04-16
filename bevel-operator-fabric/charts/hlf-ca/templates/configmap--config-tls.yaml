@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hlf-ca.fullname" . }}--config-tls
+  labels:
+{{ include "labels.standard" . | indent 4 }}
+data:
+  fabric-ca-server-config.yaml: |
+    tls:
+      certfile: /tmp/data/ordererca/tlsca/tls-cert.pem
+      clientauth:
+        type: noclientcert
+      enabled: true
+      keyfile: /tmp/data/ordererca/tlsca/tls-key.pem
+
+
+    affiliations:
+    {{- toYaml .Values.tlsCA.affiliations | nindent 6 }}
+
+    bccsp:
+    {{- toYaml .Values.tlsCA.bccsp | nindent 6 }}
+
+    ca:
+      name: {{ .Values.tlsCA.name }}
+      # Key file (is only used to import a private key into BCCSP)
+      keyfile: /var/hyperledger/fabric-ca/msp-tls-secret/keyfile
+      # Certificate file (default: ca-cert.pem)
+      certfile: /var/hyperledger/fabric-ca/msp-tls-secret/certfile
+{{- if .Values.msp.tlsCAChainfile }}
+      chainfile: /var/hyperledger/fabric-ca/msp-tls-secret/chainfile
+{{- else }}
+      chainfile:
+{{- end }}
+
+    crlsizelimit: {{ .Values.clrSizeLimit }}
+    db:
+      type: {{.Values.db.type}}
+      datasource: {{.Values.db.datasource}}
+      tls:
+          enabled: false
+          certfiles:
+          client:
+            certfile:
+            keyfile:
+    cfg:
+    {{- toYaml .Values.tlsCA.cfg | nindent 6 }}
+    cors:
+      enabled: false
+      origins:
+        - '*'
+    crl:
+    {{- toYaml .Values.tlsCA.crl | nindent 6 }}
+    csr:
+    {{- toYaml .Values.tlsCA.csr | nindent 6 }}
+
+    intermediate:
+    {{- toYaml .Values.tlsCA.intermediate | nindent 6 }}
+    ldap:
+      attribute:
+        converters:
+          - {}
+        maps:
+          groups:
+            - {}
+        names:
+          - uid
+          - member
+      tls:
+        client: {}
+      url: ldap://<adminDN>:<adminPassword>@<host>:<port>/<base>
+    registry:
+    {{- toYaml .Values.tlsCA.registry | nindent 6 }}
+    signing:
+    {{- toYaml .Values.tlsCA.signing | nindent 6 }}
+
+    operations:
+      # host and port for the operations server
+      listenAddress: 0.0.0.0:9443
+
+      # TLS configuration for the operations endpoint
+      tls:
+        # TLS enabled
+        enabled: false
+
+        # path to PEM encoded server certificate for the operations server
+        cert:
+          file: tls/server.crt
+
+        # path to PEM encoded server key for the operations server
+        key:
+          file: tls/server.key
+
+        # require client certificate authentication to access all resources
+        clientAuthRequired: false
+
+        # paths to PEM encoded ca certificates to trust for client authentication
+        clientRootCAs:
+          files: []
+
+

@@ -1,0 +1,25 @@
+{{- if and .Values.persistence.peer.enabled (not .Values.persistence.peer.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "hlf-peer.fullname" . }}
+  labels:
+{{ include "labels.standard" . | indent 4 }}
+{{- if .Values.persistence.peer.annotations }}
+  annotations:
+{{ toYaml .Values.persistence.peer.annotations | indent 4 }}
+{{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.peer.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.peer.size | quote }}
+  {{- if .Values.persistence.peer.storageClass }}
+  {{- if (eq "-" .Values.persistence.peer.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ .Values.persistence.peer.storageClass }}"
+  {{- end }}
+  {{- end }}
+{{- end }}

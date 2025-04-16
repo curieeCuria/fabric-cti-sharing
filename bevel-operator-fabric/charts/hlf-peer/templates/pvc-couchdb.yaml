@@ -1,0 +1,27 @@
+{{- if eq .Values.peer.databaseType "CouchDB" }}
+{{- if and .Values.persistence.couchdb.enabled (not .Values.couchdb.external.enabled) (not .Values.persistence.couchdb.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "hlf-peer.fullname" . }}--couchdb
+  labels:
+{{ include "labels.standard" . | indent 4 }}
+{{- if .Values.persistence.couchdb.annotations }}
+  annotations:
+{{ toYaml .Values.persistence.couchdb.annotations | indent 4 }}
+{{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.couchdb.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.couchdb.size | quote }}
+  {{- if .Values.persistence.couchdb.storageClass }}
+  {{- if (eq "-" .Values.persistence.couchdb.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ .Values.persistence.couchdb.storageClass }}"
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,41 @@
+on:
+  push:
+  pull_request:
+
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.23.1 ]
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.4.0
+        with:
+          cluster_name: kind
+          node_image: kindest/node:v1.25.8
+          config: .github/kind-config.yaml
+
+      - name: Install operator
+        run: | 
+          go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.16.4
+          make generate manifests install
+
+      - name: Test
+        run: make test
+      - name: Show information
+        if: ${{ failure() }}
+        run: |
+          kubectl get nodes -o=wide
+          kubectl get pods -o=wide -A
+          kubectl get fabricpeers.hlf.kungfusoftware.es  -A -o=custom-columns='NAME:metadata.name,NAMESPACE:metadata.namespace,STATE:status.status,MESSAGE:status.message'
+          kubectl get fabricorderernodes.hlf.kungfusoftware.es  -A -o=custom-columns='NAME:metadata.name,NAMESPACE:metadata.namespace,STATE:status.status,MESSAGE:status.message'
+          kubectl get fabriccas.hlf.kungfusoftware.es -A -o=custom-columns='NAME:metadata.name,NAMESPACE:metadata.namespace,STATE:status.status,MESSAGE:status.message'
