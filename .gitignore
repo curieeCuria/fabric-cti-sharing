@@ -1,6 +1,3 @@
 ipfs/peers.json
 ipfs/secret.yaml
 ipfs/cti/ctivenv/
-ipfs/cti/chunks/
-ipfs/cti/data_map.json
-ipfs/cti/decrypted_url.json
