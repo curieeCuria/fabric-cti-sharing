@@ -1,0 +1,38 @@
+global:
+  enabled: true
+
+server:
+  # Enable standalone mode for simplicity
+  standalone:
+    enabled: true
+    config: |
+      listener "tcp" {
+        address = "0.0.0.0:8200"
+        cluster_address = "0.0.0.0:8201"
+        tls_disable = 1
+      }
+
+      storage "file" {
+        path = "/vault/data"
+      }
+
+      ui = true
+      default_lease_ttl = "168h"
+      max_lease_ttl = "720h"
+
+  # Persistent storage configuration
+  dataStorage:
+    enabled: true
+    storageClass: "local-path"
+    size: "1Gi"
+
+  # Service configuration
+  service:
+    type: LoadBalancer
+    ports:
+      - name: http
+        port: 8200
+        targetPort: 8200
+
+ui:
+  enabled: true
