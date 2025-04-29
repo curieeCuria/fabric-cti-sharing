@@ -1,7 +1,54 @@
+"""
+This module provides utility functions for handling CTI (Cyber Threat Intelligence) data, 
+including file hashing, AES encryption/decryption, and integration with HashiCorp Vault for 
+secure key storage and retrieval. IPFS (InterPlanetary File System) is used for storing and
+retrieving files.
+
+Functions:
+    calculate_file_sha256(filepath: str) -> str:
+
+    generate_aes_key() -> bytes:
+        Generate a random 256-bit AES key.
+
+    encrypt_cti_data(aes_key: bytes, filepath: str) -> bytes:
+
+    decrypt_cti_data(aes_key: bytes, cipher_text: bytes) -> bytes:
+
+    store_aes_key(client, key_name: str, key: bytes):
+        Store the AES key securely in HashiCorp Vault.
+
+    retrieve_aes_key(client, key_name: str) -> bytes:
+        Retrieve the AES key from HashiCorp Vault.
+    
+    add_file_to_ipfs(file_data: bytes, filename: str = "data") -> str:
+        Add in-memory file data to IPFS and return the CID (Content Identifier).
+    
+    retrieve_file_from_ipfs(cid: str) -> bytes:
+        Retrieve file data from IPFS using its CID and return it as bytes.
+
+Example Usage:
+    This script can be executed directly to demonstrate the encryption and decryption of a CTI file.
+    It also shows how to store and retrieve AES keys using HashiCorp Vault.
+
+    Command-line usage:
+        python utils.py <CTI_FILENAME>
+
+    If no filename is provided, it defaults to "sample_cti.json".
+
+Note:
+    Ensure that HashiCorp Vault is running and accessible at the specified URL.
+    Set the environment variables `CTI_CREATOR_TOKEN` and `CTI_CONSUMER_TOKEN` 
+    with appropriate Vault tokens.
+"""
+
 import hashlib
 import sys
-import hvac
+import os
 from base64 import b64encode, b64decode
+import requests
+import hvac
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 
 def calculate_file_sha256(filepath: str) -> str:
     """
@@ -14,15 +61,51 @@ def calculate_file_sha256(filepath: str) -> str:
             for chunk in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(chunk)
         return sha256_hash.hexdigest()
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Error: File not found at {filepath}")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Error: File not found at {filepath}") from e
     except IOError as e:
-        raise IOError(f"An error occurred while reading file {filepath}: {e}")
+        raise IOError(f"An error occurred while reading file {filepath}: {e}") from e
+
+def generate_aes_key() -> bytes:
+    """
+    Generate a random AES key.
+    """
+    return get_random_bytes(32)
+
+def encrypt_cti_data(aes_key: bytes, filepath: str) -> bytes:
+    """
+    Encrypt the CTI data using AES GCM mode.
+    """
+    try:
+        with open(filepath, "rb") as f:
+            plain_text = f.read()
+    except (FileNotFoundError, IOError) as e:
+        raise IOError(f"Error reading file {filepath}: {e}") from e
+
+    cipher = AES.new(aes_key, AES.MODE_GCM)
+    cipher_text, tag = cipher.encrypt_and_digest(plain_text)
+    return cipher.nonce + cipher_text + tag
+
+def decrypt_cti_data(aes_key: bytes, cipher_text: bytes) -> bytes:
+    """
+    Decrypt the CTI data using AES GCM mode.
+    """
+    nonce = cipher_text[:16]
+    tag = cipher_text[-16:]
+    encrypted_data = cipher_text[16:-16]
+    cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
+    try:
+        plain_text = cipher.decrypt_and_verify(encrypted_data, tag)
+    except ValueError as e:
+        raise ValueError("Decryption failed. Integrity check failed.") from e
+    return plain_text
 
 def store_aes_key(client, key_name: str, key: bytes):
+    """
+    Store the AES key in Vault.
+    """
     try:
         wrapped_key = b64encode(key).decode('utf-8')
-        # path = f"cti/keys/{key_name}"
         client.secrets.kv.v2.create_or_update_secret(
             mount_point="kv-v2",
             path=key_name,
@@ -34,8 +117,10 @@ def store_aes_key(client, key_name: str, key: bytes):
         raise
 
 def retrieve_aes_key(client, key_name: str) -> bytes:
+    """
+    Retrieve the AES key from Vault.
+    """
     try:
-        # path = f"cti/keys/{key_name}"
         secret = client.secrets.kv.v2.read_secret(
             mount_point="kv-v2",
             path=key_name
@@ -47,42 +132,119 @@ def retrieve_aes_key(client, key_name: str) -> bytes:
         print(f"Error retrieving AES key '{key_name}': {e}")
         raise
 
+def add_file_to_ipfs(file_data: bytes, filename: str = "data") -> str:
+    """
+    Add in-memory file data to IPFS and return the CID (Content Identifier).
+    """
+    ipfs_add_url = "http://172.20.0.2:9094/add"
+    try:
+        response = requests.post(ipfs_add_url, files={'file': (filename, file_data)}, timeout=10)
+        response.raise_for_status()
+        cid = response.json().get('cid')
+        if not cid:
+            raise ValueError("Failed to retrieve CID from IPFS response.")
+        print(f"File added to IPFS with CID: {cid}")
+        return cid
+    except requests.RequestException as e:
+        raise RuntimeError(f"Error adding data to IPFS: {e}") from e
+
+def retrieve_file_from_ipfs(cid: str) -> bytes:
+    """
+    Retrieve file data from IPFS using its CID and return it as bytes.
+    """
+    ipfs_retrieve_url = f"http://172.20.0.2:8080/ipfs/{cid}"
+    try:
+        response = requests.get(ipfs_retrieve_url, timeout=10)
+        response.raise_for_status()
+        print(f"Data with CID '{cid}' retrieved from IPFS.")
+        return response.content
+    except requests.RequestException as e:
+        raise RuntimeError(f"Error retrieving data from IPFS: {e}") from e
+
+
 # Example usage: python utils.py sample_cti.json
 if __name__ == "__main__":
 
     if len(sys.argv) > 1:
-        cti_filename = sys.argv[1]
+        CTI_FILENAME = sys.argv[1]
     else:
-        cti_filename = "sample_cti.json" # Default file name
+        CTI_FILENAME = "sample_cti.json" # Default file name
 
     try:
-        original_hash = calculate_file_sha256(cti_filename)
-        print(f"Original CTI File: {cti_filename}")
-        print(f"SHA-256 Hash: {original_hash}")
+        ORIGINAL_HASH = calculate_file_sha256(CTI_FILENAME)
+        print(f"Original CTI File: {CTI_FILENAME}")
+        print(f"SHA-256 Hash: {ORIGINAL_HASH}")
     except (FileNotFoundError, IOError) as e:
         print(e)
         sys.exit(1)
 
-    
+
     # Example Vault usage
-    client = hvac.Client(
+    creator_client = hvac.Client(
         url='http://172.20.0.2:8200',
-        token='hvs.xxxx...' # cti-creator token
+        token=os.environ.get('CTI_CREATOR_TOKEN') # export CTI_CREATOR_TOKEN='<token>'
     )
 
-    aes_key = b'example_aes_key_1234567890'  # Example AES key
-    key_name = 'example_key_name'  # Example key name
+    # Generate a new AES key
+    aes_key_1 = generate_aes_key()
+    print(f"Generated AES key: {aes_key_1.hex()[:3]}...")
 
-    store_aes_key(client, key_name, aes_key)
+    # Encrypt the CTI data
+    try:
+        encrypted_file_data = encrypt_cti_data(aes_key_1, CTI_FILENAME)
+        print(f"Encrypted data: {encrypted_file_data.hex()[:3]}...")
 
-    client = hvac.Client(
+        AES_KEY_NAME = 'example_key_name_0'  # Example key name
+        store_aes_key(creator_client, AES_KEY_NAME, aes_key_1)
+        print(f"AES key stored in Vault with name: {AES_KEY_NAME}")
+    except (FileNotFoundError, IOError) as e:
+        print(e)
+        sys.exit(1)
+
+    # Add the encrypted data to IPFS
+    try:
+        encrypted_cid = add_file_to_ipfs(encrypted_file_data, filename="encrypted_data")
+        print(f"This can be passed to chaincode: {encrypted_cid}")
+    except RuntimeError as e:
+        print(e)
+        sys.exit(1)
+
+
+    print("\n---Decrypting the data---")
+    # Retrieve the encrypted data from IPFS
+    try:
+        retrieved_encrypted_data = retrieve_file_from_ipfs(encrypted_cid)
+        print(f"Retrieved encrypted data from IPFS: {retrieved_encrypted_data.hex()[:16]}...")
+    except RuntimeError as e:
+        print(e)
+        sys.exit(1)
+
+    # Retrieve the AES key from Vault
+    consumer_client = hvac.Client(
         url='http://172.20.0.2:8200',
-        token='hvs.xxxx...' # cti-consumer token
+        token=os.environ.get('CTI_CONSUMER_TOKEN') # export CTI_CONSUMER_TOKEN='<token>'
     )
 
-    retrieved_key = retrieve_aes_key(client, key_name)
-    print(f"Retrieved AES key: {retrieved_key}")
+    retrieved_key = retrieve_aes_key(consumer_client, AES_KEY_NAME)
+    print(f"Retrieved AES key: {retrieved_key.hex()[:3]}...")
 
     # Verify the retrieved key matches the original key
-    assert aes_key == retrieved_key, "Keys do not match!"
+    assert aes_key_1 == retrieved_key, "Keys do not match!"
     print("Keys match successfully!")
+
+    # Decrypt the data
+    try:
+        decrypted_data = decrypt_cti_data(retrieved_key, retrieved_encrypted_data)
+        print(f"Decrypted data: {decrypted_data[:32]}...")
+
+        # Verify the decrypted data matches the original file
+        DECRYPTED_HASH = hashlib.sha256(decrypted_data).hexdigest()
+        print(f"Decrypted data SHA-256 Hash: {DECRYPTED_HASH}")
+
+        if ORIGINAL_HASH == DECRYPTED_HASH:
+            print("Decryption successful! The hashes match.")
+        else:
+            print("Decryption failed! The hashes do not match.")
+    except ValueError as e:
+        print(f"Decryption failed: {e}")
+        sys.exit(1)
