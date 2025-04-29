@@ -50,6 +50,10 @@ import hvac
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
+IPFS_ADD_URL = os.getenv("IPFS_ADD_URL", "http://172.20.0.2:9094/add")
+IPFS_RETRIEVE_URL = os.getenv("IPFS_RETRIEVE_URL", "http://172.20.0.2:8080/ipfs")
+VAULT_ADDR = os.getenv("VAULT_ADDR", "http://172.20.0.2:8200")
+
 def calculate_file_sha256(filepath: str) -> str:
     """
     Calculate the SHA-256 hash of a file.
@@ -136,9 +140,8 @@ def add_file_to_ipfs(file_data: bytes, filename: str = "data") -> str:
     """
     Add in-memory file data to IPFS and return the CID (Content Identifier).
     """
-    ipfs_add_url = "http://172.20.0.2:9094/add"
     try:
-        response = requests.post(ipfs_add_url, files={'file': (filename, file_data)}, timeout=10)
+        response = requests.post(IPFS_ADD_URL, files={'file': (filename, file_data)}, timeout=10)
         response.raise_for_status()
         cid = response.json().get('cid')
         if not cid:
@@ -152,7 +155,7 @@ def retrieve_file_from_ipfs(cid: str) -> bytes:
     """
     Retrieve file data from IPFS using its CID and return it as bytes.
     """
-    ipfs_retrieve_url = f"http://172.20.0.2:8080/ipfs/{cid}"
+    ipfs_retrieve_url = f"{IPFS_RETRIEVE_URL}/{cid}"
     try:
         response = requests.get(ipfs_retrieve_url, timeout=10)
         response.raise_for_status()
@@ -181,7 +184,7 @@ if __name__ == "__main__":
 
     # Example Vault usage
     creator_client = hvac.Client(
-        url='http://172.20.0.2:8200',
+        url=VAULT_ADDR,
         token=os.environ.get('CTI_CREATOR_TOKEN') # export CTI_CREATOR_TOKEN='<token>'
     )
 
@@ -221,7 +224,7 @@ if __name__ == "__main__":
 
     # Retrieve the AES key from Vault
     consumer_client = hvac.Client(
-        url='http://172.20.0.2:8200',
+        url=VAULT_ADDR,
         token=os.environ.get('CTI_CONSUMER_TOKEN') # export CTI_CONSUMER_TOKEN='<token>'
     )
 
