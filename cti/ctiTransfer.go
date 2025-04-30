@@ -1,0 +1,208 @@
+// SPDX-License-Identifier: Apache-2.0
+// Portions of this code are adapted from assetTransfer.go, licensed under Apache 2.0.
+// See https://github.com/hyperledger/fabric-samples/blob/main/asset-transfer-basic/chaincode-external/assetTransfer.go for the original implementation.
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+)
+
+type serverConfig struct {
+	CCID    string
+	Address string
+}
+
+type CTIChaincode struct {
+	contractapi.Contract
+}
+
+type CTIMetadata struct {
+	UUID           string `json:"uuid"`
+	Description    string `json:"description"`
+	Timestamp      string `json:"timestamp"`
+	SenderIdentity string `json:"sender_identity"`
+	CID            string `json:"cid"`
+	VaultKey       string `json:"vault_key"`
+	SHA256Hash     string `json:"sha256_hash"`
+}
+
+func (c *CTIChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
+	initialMetadata := []CTIMetadata{
+		{
+			UUID:           "12345",
+			Description:    "Initial metadata entry 12345",
+			Timestamp:      "2023-10-01T12:00:00Z",
+			SenderIdentity: "user1",
+			CID:            "CID12345",
+			VaultKey:       "vaultKey12345",
+			SHA256Hash:     "sha256hash12345",
+		},
+		{
+			UUID:           "67890",
+			Description:    "Initial metadata entry 67890",
+			Timestamp:      "2023-10-02T12:00:00Z",
+			SenderIdentity: "user2",
+			CID:            "CID67890",
+			VaultKey:       "vaultKey67890",
+			SHA256Hash:     "sha256hash67890",
+		},
+	}
+
+	for _, metadata := range initialMetadata {
+		metadataKey := fmt.Sprintf("CTI_%s", metadata.UUID)
+		metadataBytes, err := json.Marshal(metadata)
+		if err != nil {
+			return fmt.Errorf("failed to marshal metadata: %v", err)
+		}
+
+		err = ctx.GetStub().PutState(metadataKey, metadataBytes)
+		if err != nil {
+			return fmt.Errorf("failed to put state for metadata %s: %v", metadata.UUID, err)
+		}
+	}
+	return nil
+}
+
+func (c *CTIChaincode) CreateCTIMetadata(ctx contractapi.TransactionContextInterface, metadataJSON string) error {
+	var metadata CTIMetadata
+	err := json.Unmarshal([]byte(metadataJSON), &metadata)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal metadata: %v", err)
+	}
+
+	if metadata.UUID == "" || metadata.Description == "" || metadata.Timestamp == "" ||
+		metadata.SenderIdentity == "" || metadata.CID == "" || metadata.VaultKey == "" || metadata.SHA256Hash == "" {
+		return fmt.Errorf("all fields in metadata must be non-empty")
+	}
+
+	metadataKey := fmt.Sprintf("CTI_%s", metadata.UUID)
+	exists, err := ctx.GetStub().GetState(metadataKey)
+	if err != nil {
+		return fmt.Errorf("failed to check if metadata exists: %v", err)
+	}
+	if exists != nil {
+		return fmt.Errorf("metadata with UUID %s already exists", metadata.UUID)
+	}
+
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %v", err)
+	}
+
+	return ctx.GetStub().PutState(metadataKey, metadataBytes)
+}
+
+func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([]CTIMetadata, error) {
+	iter, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get state by range: %v", err)
+	}
+	defer iter.Close()
+
+	var metadataList []CTIMetadata
+	for iter.HasNext() {
+		queryResponse, err := iter.Next()
+		if err != nil {
+			return nil, fmt.Errorf("failed to iterate over state: %v", err)
+		}
+
+		var metadata CTIMetadata
+		err = json.Unmarshal(queryResponse.Value, &metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal metadata: %v", err)
+		}
+		metadataList = append(metadataList, metadata)
+	}
+
+	return metadataList, nil
+}
+
+func main() {
+	config := serverConfig{
+		CCID:    os.Getenv("CHAINCODE_ID"),
+		Address: os.Getenv("CHAINCODE_SERVER_ADDRESS"),
+	}
+
+	chaincode, err := contractapi.NewChaincode(new(CTIChaincode))
+
+	if err != nil {
+		log.Panicf("Error creating CTIChaincode: %s", err)
+	}
+
+	server := &shim.ChaincodeServer{
+		CCID:     config.CCID,
+		Address:  config.Address,
+		CC:       chaincode,
+		TLSProps: getTLSProperties(),
+	}
+
+	if err := server.Start(); err != nil {
+		log.Panicf("Error starting CTIChaincode: %s", err)
+	}
+}
+
+func getTLSProperties() shim.TLSProperties {
+	tlsDisabledStr := getEnvOrDefault("CHAINCODE_TLS_DISABLED", "true")
+	key := getEnvOrDefault("CHAINCODE_TLS_KEY", "")
+	cert := getEnvOrDefault("CHAINCODE_TLS_CERT", "")
+	clientCACert := getEnvOrDefault("CHAINCODE_CLIENT_CA_CERT", "")
+
+	tlsDisabled := getBoolOrDefault(tlsDisabledStr, false)
+	var keyBytes, certBytes, clientCACertBytes []byte
+	var err error
+
+	if !tlsDisabled {
+		keyBytes, err = os.ReadFile(key)
+		if err != nil {
+			log.Panicf("Error reading TLS key file: %s", err)
+		}
+
+		certBytes, err = os.ReadFile(cert)
+		if err != nil {
+			log.Panicf("Error reading TLS cert file: %s", err)
+		}
+
+		clientCACertBytes, err = os.ReadFile(clientCACert)
+		if err != nil {
+			log.Panicf("Error reading client CA cert file: %s", err)
+		}
+	}
+
+	if clientCACert != "" {
+		clientCACertBytes, err = os.ReadFile(clientCACert)
+		if err != nil {
+			log.Panicf("Error reading client CA cert file: %s", err)
+		}
+	}
+
+	return shim.TLSProperties{
+		Disabled:      tlsDisabled,
+		Key:           keyBytes,
+		Cert:          certBytes,
+		ClientCACerts: clientCACertBytes,
+	}
+}
+
+func getEnvOrDefault(env, defaultVal string) string {
+	value, ok := os.LookupEnv(env)
+	if !ok {
+		value = defaultVal
+	}
+	return value
+}
+
+func getBoolOrDefault(value string, defaultVal bool) bool {
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return defaultVal
+	}
+	return parsed
+}
