@@ -23,7 +23,7 @@ if __name__ == "__main__":
             raise ValueError(f"'{filepath}' is not a file.")
         
         sender_identity = input("Enter the sender's identity/organization: ").strip()
-        cti_type = input("Enter the CTI type: ").strip()
+        description = input("Enter a description: ").strip()
 
         # Initialize Vault client
         creator_client = hvac.Client(
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         cid = add_file_to_ipfs(encrypted_data, filename="encrypted_data")
 
         # Gather metadata
-        metadata = gather_cti_metadata(filepath, cid, aes_key_name, sender_identity, cti_type)
+        metadata = gather_cti_metadata(description, sender_identity, cid, aes_key_name, filepath)
         print(f"\nMetadata gathered: {metadata}")
 
         # Submit metadata to Fabric

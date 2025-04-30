@@ -168,24 +168,24 @@ def retrieve_file_from_ipfs(cid: str) -> bytes:
     except requests.RequestException as e:
         raise RuntimeError(f"Error retrieving data from IPFS: {e}") from e
 
-def gather_cti_metadata(filepath: str, cid: str, aes_key_name: str, sender_identity: str, cti_type: str) -> dict:
+def gather_cti_metadata(description: str, sender_identity: str, cid: str, aes_key_name: str, filepath: str) -> dict:
     """
     Gather metadata for the CTI instance.
     """
     metadata = {
-        "uuid": str(uuid.uuid4()),  # Unique identifier for the CTI instance
-        "sha256_hash": calculate_file_sha256(filepath),  # Hash of the original file
-        "cid": cid,  # CID of the encrypted data in IPFS
-        "vault_key": f"kv-v2/data/{aes_key_name}",
+        "uuid": str(uuid.uuid4()),
+        "description": description,
         "timestamp": datetime.now().replace(microsecond=0).isoformat(),
         "sender_identity": sender_identity,
-        "cti_type": cti_type
+        "cid": cid,
+        "vault_key": f"kv-v2/data/{aes_key_name}",
+        "sha256_hash": calculate_file_sha256(filepath)
     }
     return metadata
 
 def submit_metadata_to_fabric(metadata: dict, chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str):
     """
-    Submit metadata to the Hyperledger Fabric ledger.
+    Submit CTI to the Hyperledger Fabric ledger.
     """
     metadata_json = json.dumps(metadata)
     command = [
@@ -201,7 +201,7 @@ def submit_metadata_to_fabric(metadata: dict, chaincode_name: str, channel_name:
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"Failed to invoke chaincode: {result.stderr}")
-    print(f"Metadata submitted successfully: {result.stdout}")
+    print(f"CTI submitted successfully: {result.stdout}")
 
 
 # Example usage: python utils.py sample_cti.json
