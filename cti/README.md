@@ -32,3 +32,7 @@ pip freeze | xargs pip uninstall -y
 ```
 sudo rm -rf ctivenv
 ```
+
+## Chaincode Usage
+
+For instructions on deploying and invoking the chaincode for CTI transfer, see [CHAINCODE_USAGE.md](./CHAINCODE_USAGE.md).
