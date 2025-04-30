@@ -119,7 +119,7 @@ EOF
 ```bash
 helm repo add kfs https://kfsoftware.github.io/hlf-helm-charts --force-update
 
-helm install hlf-operator --version=1.11.1 -- kfs/hlf-operator # tämä pitää olla uusin saatavilla oleva (1.11.0 ei toiminu)
+helm install hlf-operator --version=1.11.1 -- kfs/hlf-operator # 1.11.0 didn't work
 ```
 
 
@@ -234,7 +234,7 @@ kubectl hlf ordnode create --image=$ORDERER_IMAGE --version=$ORDERER_VERSION \
     --enroll-pw=ordererpw --capacity=2Gi --name=ord-node4 --ca-name=ord-ca.default \
     --hosts=orderer3-ord.localho.st --admin-hosts=admin-orderer3-ord.localho.st --istio-port=443
 
-# 3/4
+# 3/4 for BFT
 
 kubectl wait --timeout=180s --for=condition=Running fabricorderernodes.hlf.kungfusoftware.es --all
 ```
