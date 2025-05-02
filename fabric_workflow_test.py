@@ -1,10 +1,23 @@
+"""
+This script is for testing the CTI transfer workflow using Hyperledger Fabric.
+It includes functionalities for:
+1. Generating an AES key for encryption.
+2. Encrypting CTI data.
+3. Storing the AES key in HashiCorp Vault.
+4. Adding the encrypted data to IPFS.
+5. Gathering metadata about the CTI data.
+6. Submitting the metadata to Hyperledger Fabric.
+7. Retrieving the CTI metadata from Hyperledger Fabric.
+"""
+
 from cti.utils import (
     generate_aes_key,
     encrypt_cti_data,
     store_aes_key,
     add_file_to_ipfs,
     gather_cti_metadata,
-    submit_metadata_to_fabric
+    submit_metadata_to_fabric,
+    get_metadata_from_fabric
 )
 import hvac
 import os
@@ -60,13 +73,28 @@ if __name__ == "__main__":
         # Submit metadata to Fabric
         submit_metadata_to_fabric(
             metadata=metadata,
-            chaincode_name="cti_chaincode",
+            chaincode_name="ctitransfer104",
             channel_name="demo",
-            config_file="org1.yaml",
+            config_file="cti/org1.yaml",
             user="org1-admin-default",
             peer="org1-peer0.default"
         )
-        print("Metadata submitted to Fabric successfully.")
+        print("Metadata submitted to Fabric successfully!")
 
     except Exception as e:
         print(f"Error: {e}")
+    
+    try:
+        # Retrieve CTI metadata from Fabric
+        uuid_to_query = input("Enter the UUID of the CTI metadata: ").strip()
+        retrieved_metadata = get_metadata_from_fabric(
+            uuid=uuid_to_query,
+            chaincode_name="ctitransfer104",
+            channel_name="demo",
+            config_file="cti/org1.yaml",
+            user="org1-admin-default",
+            peer="org1-peer0.default"
+        )
+        print("CTI metadata retrieved successfully!")
+    except Exception as e:
+        print(f"Error retrieving CTI metadata: {e}")
