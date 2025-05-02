@@ -25,13 +25,13 @@ type CTIChaincode struct {
 }
 
 type CTIMetadata struct {
-	UUID           string `json:"uuid"`
-	Description    string `json:"description"`
-	Timestamp      string `json:"timestamp"`
-	SenderIdentity string `json:"sender_identity"`
-	CID            string `json:"cid"`
-	VaultKey       string `json:"vault_key"`
-	SHA256Hash     string `json:"sha256_hash"`
+	UUID           string `json:"UUID"`
+	Description    string `json:"Description"`
+	Timestamp      string `json:"Timestamp"`
+	SenderIdentity string `json:"SenderIdentity"`
+	CID            string `json:"CID"`
+	VaultKey       string `json:"VaultKey"`
+	SHA256Hash     string `json:"SHA256Hash"`
 }
 
 func (c *CTIChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
@@ -123,6 +123,62 @@ func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([
 	}
 
 	return metadataList, nil
+}
+
+func (c *CTIChaincode) ReadCTIMetadata(ctx contractapi.TransactionContextInterface, uuid string) (*CTIMetadata, error) {
+	metadataKey := fmt.Sprintf("CTI_%s", uuid)
+	metadataBytes, err := ctx.GetStub().GetState(metadataKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read metadata from world state: %v", err)
+	}
+	if metadataBytes == nil {
+		return nil, fmt.Errorf("metadata with UUID %s does not exist", uuid)
+	}
+
+	var metadata CTIMetadata
+	err = json.Unmarshal(metadataBytes, &metadata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal metadata: %v", err)
+	}
+
+	return &metadata, nil
+}
+
+func (c *CTIChaincode) UpdateCTIMetadata(ctx contractapi.TransactionContextInterface, metadataJSON string) error {
+	var metadata CTIMetadata
+	err := json.Unmarshal([]byte(metadataJSON), &metadata)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal metadata: %v", err)
+	}
+
+	metadataKey := fmt.Sprintf("CTI_%s", metadata.UUID)
+	exists, err := ctx.GetStub().GetState(metadataKey)
+	if err != nil {
+		return fmt.Errorf("failed to check if metadata exists: %v", err)
+	}
+	if exists == nil {
+		return fmt.Errorf("metadata with UUID %s does not exist", metadata.UUID)
+	}
+
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %v", err)
+	}
+
+	return ctx.GetStub().PutState(metadataKey, metadataBytes)
+}
+
+func (c *CTIChaincode) DeleteCTIMetadata(ctx contractapi.TransactionContextInterface, uuid string) error {
+	metadataKey := fmt.Sprintf("CTI_%s", uuid)
+	exists, err := ctx.GetStub().GetState(metadataKey)
+	if err != nil {
+		return fmt.Errorf("failed to check if metadata exists: %v", err)
+	}
+	if exists == nil {
+		return fmt.Errorf("metadata with UUID %s does not exist", uuid)
+	}
+
+	return ctx.GetStub().DelState(metadataKey)
 }
 
 func main() {
