@@ -57,6 +57,11 @@ kubectl exec -it vault-0 -n vault -- rm /tmp/cti-consumer.hcl
 kubectl exec -it vault-0 -n vault -- rm /tmp/cti-creator.hcl
 ```
 
+## Enable secrets engine
+```
+kubectl exec -it vault-0 -n vault -- vault secrets enable -path=kv-v2 kv-v2
+```
+
 ## Generate Tokens for Policies
 ```
 kubectl exec -it vault-0 -n vault -- vault token create -policy="cti-creator"
