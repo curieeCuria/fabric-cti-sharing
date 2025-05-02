@@ -173,13 +173,13 @@ def gather_cti_metadata(description: str, sender_identity: str, cid: str, aes_ke
     Gather metadata for the CTI instance.
     """
     metadata = {
-        "uuid": str(uuid.uuid4()),
-        "description": description,
-        "timestamp": datetime.now().replace(microsecond=0).isoformat(),
-        "sender_identity": sender_identity,
-        "cid": cid,
-        "vault_key": f"kv-v2/data/{aes_key_name}",
-        "sha256_hash": calculate_file_sha256(filepath)
+        "UUID": str(uuid.uuid4()),
+        "Description": description,
+        "Timestamp": datetime.now().replace(microsecond=0).isoformat(),
+        "SenderIdentity": sender_identity,
+        "CID": cid,
+        "VaultKey": f"kv-v2/data/{aes_key_name}",
+        "SHA256Hash": calculate_file_sha256(filepath)
     }
     return metadata
 
@@ -196,12 +196,37 @@ def submit_metadata_to_fabric(metadata: dict, chaincode_name: str, channel_name:
         "--chaincode", chaincode_name,
         "--channel", channel_name,
         "--fcn", "CreateCTIMetadata",
-        "-a", metadata_json
+        "--args", metadata_json
     ]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"Failed to invoke chaincode: {result.stderr}")
-    print(f"CTI submitted successfully: {result.stdout}")
+    print(f"CTI submitted successfully!")
+
+def get_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str) -> dict:
+    """
+    Retrieve CTI metadata from the Hyperledger Fabric ledger by UUID.
+    """
+    command = [
+        "kubectl", "hlf", "chaincode", "invoke",
+        "--config", config_file,
+        "--user", user,
+        "--peer", peer,
+        "--chaincode", chaincode_name,
+        "--channel", channel_name,
+        "--fcn", "ReadCTIMetadata",
+        "--args", uuid
+    ]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to query chaincode: {result.stderr}")
+    
+    try:
+        metadata = json.loads(result.stdout)
+        print(f"CTI metadata retrieved successfully: {metadata}")
+        return metadata
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
 
 
 # Example usage: python utils.py sample_cti.json
