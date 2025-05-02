@@ -223,7 +223,6 @@ def get_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, 
     
     try:
         metadata = json.loads(result.stdout)
-        print(f"CTI metadata retrieved successfully: {metadata}")
         return metadata
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
