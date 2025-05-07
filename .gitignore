@@ -2,3 +2,4 @@ ipfs/peers.json
 ipfs/secret.yaml
 cti/ctivenv/
 cti/__pycache__/
+cti/resources/*
