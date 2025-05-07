@@ -16,9 +16,12 @@ from cti.utils import (
 import hvac
 import uuid
 
+# Set environmnent variables: export CTI_CREATOR_TOKEN=...
 VAULT_ADDR = os.getenv("VAULT_ADDR", "http://172.20.0.2:8200")
 CTI_CREATOR_TOKEN = os.getenv("CTI_CREATOR_TOKEN")
 CTI_CONSUMER_TOKEN = os.getenv("CTI_CONSUMER_TOKEN")
+PEERNAME = os.getenv("PEERNAME", "org1-peer0.default")
+CHANNEL = os.getenv("CHANNEL", "main")
 
 def create_cti(args):
     try:
@@ -43,15 +46,16 @@ def create_cti(args):
 
         # Gather metadata
         metadata = gather_cti_metadata(args.description, args.sender_identity, cid, aes_key_name, args.filepath)
+        metadata["AccessList"] = args.roles.split(",")
 
         # Submit metadata to Fabric
         submit_metadata_to_fabric(
             metadata=metadata,
             chaincode_name="ctitransfer104",
-            channel_name="demo",
-            config_file="cti/org1.yaml",
-            user="org1-admin-default",
-            peer="org1-peer0.default"
+            channel_name="main",
+            config_file="cti/resources/network.yaml",
+            user="admin",
+            peer=PEERNAME
         )
         print(f"CTI UUID: {metadata['UUID']}")
     except Exception as e:
@@ -63,10 +67,10 @@ def decrypt_cti(args):
         metadata = get_metadata_from_fabric(
             uuid=args.uuid,
             chaincode_name="ctitransfer104",
-            channel_name="demo",
-            config_file="cti/org1.yaml",
-            user="org1-admin-default",
-            peer="org1-peer0.default"
+            channel_name="main",
+            config_file="cti/resources/network.yaml",
+            user="admin",
+            peer=PEERNAME
         )
         print("Metadata retrieved successfully!")
 
@@ -118,6 +122,7 @@ def main():
     create_parser.add_argument("filepath", type=str, help="Path to the CTI file")
     create_parser.add_argument("sender_identity", type=str, help="Sender's identity/organization")
     create_parser.add_argument("description", type=str, help="Description of the CTI")
+    create_parser.add_argument("roles", type=str, help="Roles to include in the AccessList (Comma-separated)")
     create_parser.set_defaults(func=create_cti)
 
     # Subcommand for decrypting CTI
