@@ -1,3 +1,5 @@
+# ENSURE THAT YOU ARE IN THE BEVEL-OPERATOR-FABRIC DIRECTORY BEFORE RUNNING THE COMMANDS
+
 ## Create cluster
 ```bash
 k3d cluster create  -p "80:30949@agent:0" -p "443:30950@agent:0" --agents 2 k8s-hlf
@@ -142,11 +144,38 @@ export CA_VERSION=1.5.13
 ```
 
 
-## Deploy a certificate authority for peer organization
+## Deploy CA for Org1
 ```bash
 export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
 kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org1-ca \
     --enroll-id=enroll --enroll-pw=enrollpw --hosts=org1-ca.localho.st --istio-port=443
+
+kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware.es --all
+```
+
+## Deploy CA for Org2
+```bash
+export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
+kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org2-ca \
+    --enroll-id=enroll --enroll-pw=enrollpw --hosts=org2-ca.localho.st --istio-port=443
+
+kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware.es --all
+```
+
+## Deploy CA for Org3
+```bash
+export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
+kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org3-ca \
+    --enroll-id=enroll --enroll-pw=enrollpw --hosts=org3-ca.localho.st --istio-port=443
+
+kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware.es --all
+```
+
+## Deploy CA for Org4
+```bash
+export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
+kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org4-ca \
+    --enroll-id=enroll --enroll-pw=enrollpw --hosts=org4-ca.localho.st --istio-port=443
 
 kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware.es --all
 ```
@@ -158,14 +187,36 @@ curl -k https://org1-ca.localho.st:443/cainfo
 ```
 
 
-## Register a user in the certification authority of the peer organization (Org1MSP)
+## Register a user in the certification authority of Org1MSP
 ```bash
 kubectl hlf ca register --name=org1-ca --user=peer --secret=peerpw --type=peer \
- --enroll-id enroll --enroll-secret=enrollpw --mspid Org1MSP
+ --enroll-id enroll --enroll-secret=enrollpw --mspid Org1MSP \
+ --attributes="role=HeadOfOperations"
+```
+
+## Register a user in the certification authority of Org2MSP
+```bash
+kubectl hlf ca register --name=org2-ca --user=peer --secret=peerpw --type=peer \
+ --enroll-id enroll --enroll-secret=enrollpw --mspid Org2MSP \
+ --attributes="role=IntelligenceUnit"
+```
+
+## Register a user in the certification authority of Org3MSP
+```bash
+kubectl hlf ca register --name=org3-ca --user=peer --secret=peerpw --type=peer \
+ --enroll-id enroll --enroll-secret=enrollpw --mspid Org3MSP \
+ --attributes="role=TacticalUnit"
+```
+
+## Register a user in the certification authority of Org4MSP
+```bash
+kubectl hlf ca register --name=org4-ca --user=peer --secret=peerpw --type=peer \
+ --enroll-id enroll --enroll-secret=enrollpw --mspid Org4MSP \
+ --attributes="role=SpecialOperationsUnit"
 ```
 
 
-## Deploy peers
+## Deploy Org1 peers
 ```bash
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org1MSP \
         --enroll-pw=peerpw --capacity=5Gi --name=org1-peer0 --ca-name=org1-ca.default \
@@ -180,11 +231,68 @@ kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VE
 kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftware.es --all
 ```
 
+## Deploy Org2 peers
+```bash
+kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org2MSP \
+        --enroll-pw=peerpw --capacity=5Gi --name=org2-peer0 --ca-name=org2-ca.default \
+        --hosts=peer0-org2.localho.st --istio-port=443
+
+
+kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org2MSP \
+        --enroll-pw=peerpw --capacity=5Gi --name=org2-peer1 --ca-name=org2-ca.default \
+        --hosts=peer1-org2.localho.st --istio-port=443
+
+
+kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftware.es --all
+```
+
+## Deploy Org3 peers
+```bash
+kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org3MSP \
+        --enroll-pw=peerpw --capacity=5Gi --name=org3-peer0 --ca-name=org3-ca.default \
+        --hosts=peer0-org3.localho.st --istio-port=443
+
+
+kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org3MSP \
+        --enroll-pw=peerpw --capacity=5Gi --name=org3-peer1 --ca-name=org3-ca.default \
+        --hosts=peer1-org3.localho.st --istio-port=443
+
+
+kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftware.es --all
+```
+
+## Deploy Org4 peers
+```bash
+kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org4MSP \
+        --enroll-pw=peerpw --capacity=5Gi --name=org4-peer0 --ca-name=org4-ca.default \
+        --hosts=peer0-org4.localho.st --istio-port=443
+
+
+kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org4MSP \
+        --enroll-pw=peerpw --capacity=5Gi --name=org4-peer1 --ca-name=org4-ca.default \
+        --hosts=peer1-org4.localho.st --istio-port=443
+
+
+kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftware.es --all
+```
+
 
 ## Check peers
 ```bash
 openssl s_client -connect peer0-org1.localho.st:443
 openssl s_client -connect peer1-org1.localho.st:443
+```
+```bash
+openssl s_client -connect peer0-org2.localho.st:443
+openssl s_client -connect peer1-org2.localho.st:443
+```
+```bash
+openssl s_client -connect peer0-org3.localho.st:443
+openssl s_client -connect peer1-org3.localho.st:443
+```
+```bash
+openssl s_client -connect peer0-org4.localho.st:443
+openssl s_client -connect peer1-org4.localho.st:443
 ```
 
 
@@ -251,31 +359,86 @@ openssl s_client -connect orderer0-ord.localho.st:443
 
 ## Register and enroll OrdererMSP identity
 ```bash
+# register
 kubectl hlf ca register --name=ord-ca --user=admin --secret=adminpw \
     --type=admin --enroll-id enroll --enroll-secret=enrollpw --mspid=OrdererMSP
 
-
-kubectl hlf identity create --name orderer-admin-sign --namespace default \
-    --ca-name ord-ca --ca-namespace default \
-    --ca ca --mspid OrdererMSP --enroll-id admin --enroll-secret adminpw # sign identity
-
-kubectl hlf identity create --name orderer-admin-tls --namespace default \
-    --ca-name ord-ca --ca-namespace default \
-    --ca tlsca --mspid OrdererMSP --enroll-id admin --enroll-secret adminpw # tls identity
+# enroll
+kubectl hlf ca enroll --name=ord-ca --namespace=default \
+    --user=admin --secret=adminpw --mspid OrdererMSP \
+    --ca-name tlsca  --output ../cti/resources/orderermsp.yaml
+    
+kubectl hlf ca enroll --name=ord-ca --namespace=default \
+    --user=admin --secret=adminpw --mspid OrdererMSP \
+    --ca-name ca  --output ../cti/resources/orderermspsign.yaml
 ```
-
 
 ## Register and enroll Org1MSP identity
 ```bash
+# Register
 kubectl hlf ca register --name=org1-ca --namespace=default --user=admin --secret=adminpw \
-    --type=admin --enroll-id enroll --enroll-secret=enrollpw --mspid=Org1MSP
+    --type=admin --enroll-id enroll --enroll-secret=enrollpw --mspid=Org1MSP \
+    --attributes="role=HeadOfOperations"
 
-# enroll
-kubectl hlf identity create --name org1-admin --namespace default \
-    --ca-name org1-ca --ca-namespace default \
-    --ca ca --mspid Org1MSP --enroll-id admin --enroll-secret adminpw
+# Enroll
+kubectl hlf ca enroll --name=org1-ca --namespace=default \
+    --user=admin --secret=adminpw --mspid=Org1MSP \
+    --ca-name ca --output ../cti/resources/org1msp.yaml \
+    --attributes="hf.Affiliation,hf.EnrollmentID,hf.Type,role"
 ```
 
+## Register and enroll Org2MSP identity
+```bash
+# Register
+kubectl hlf ca register --name=org2-ca --namespace=default --user=admin --secret=adminpw \
+    --type=admin --enroll-id enroll --enroll-secret=enrollpw --mspid=Org2MSP \
+    --attributes="role=IntelligenceUnit"
+
+# Enroll
+kubectl hlf ca enroll --name=org2-ca --namespace=default \
+    --user=admin --secret=adminpw --mspid=Org2MSP \
+    --ca-name ca --output ../cti/resources/org2msp.yaml \
+    --attributes="hf.Affiliation,hf.EnrollmentID,hf.Type,role"
+```
+
+## Register and enroll Org3MSP identity
+```bash
+# Register
+kubectl hlf ca register --name=org3-ca --namespace=default --user=admin --secret=adminpw \
+    --type=admin --enroll-id enroll --enroll-secret=enrollpw --mspid=Org3MSP \
+    --attributes="role=TacticalUnit"
+
+# Enroll
+kubectl hlf ca enroll --name=org3-ca --namespace=default \
+    --user=admin --secret=adminpw --mspid=Org3MSP \
+    --ca-name ca --output ../cti/resources/org3msp.yaml \
+    --attributes="hf.Affiliation,hf.EnrollmentID,hf.Type,role"
+```
+
+## Register and enroll Org4MSP identity
+```bash
+# Register
+kubectl hlf ca register --name=org4-ca --namespace=default --user=admin --secret=adminpw \
+    --type=admin --enroll-id enroll --enroll-secret=enrollpw --mspid=Org4MSP \
+    --attributes="role=SpecialOperationsUnit"
+
+# Enroll
+kubectl hlf ca enroll --name=org4-ca --namespace=default \
+    --user=admin --secret=adminpw --mspid=Org4MSP \
+    --ca-name ca --output ../cti/resources/org4msp.yaml \
+    --attributes="hf.Affiliation,hf.EnrollmentID,hf.Type,role"
+```
+
+## Create secret wallet
+```bash
+kubectl create secret generic wallet --namespace=default \
+    --from-file=org1msp.yaml=$PWD/../cti/resources/org1msp.yaml \
+    --from-file=org2msp.yaml=$PWD/../cti/resources/org2msp.yaml \
+    --from-file=org3msp.yaml=$PWD/../cti/resources/org3msp.yaml \
+    --from-file=org4msp.yaml=$PWD/../cti/resources/org4msp.yaml \
+    --from-file=orderermsp.yaml=$PWD/../cti/resources/orderermsp.yaml \
+    --from-file=orderermspsign.yaml=$PWD/../cti/resources/orderermspsign.yaml
+```
 
 ## Create main channel
 ```bash
@@ -297,9 +460,9 @@ kubectl apply -f - <<EOF
 apiVersion: hlf.kungfusoftware.es/v1alpha1
 kind: FabricMainChannel
 metadata:
-  name: demo
+  name: main
 spec:
-  name: demo
+  name: main
   adminOrdererOrganizations:
     - mspID: OrdererMSP
   adminPeerOrganizations:
@@ -402,18 +565,31 @@ ${ORDERER3_SIGN_CERT}
     - mspID: Org1MSP
       caName: "org1-ca"
       caNamespace: "default"
+    - mspID: Org2MSP
+      caName: "org2-ca"
+      caNamespace: "default"
+    - mspID: Org3MSP
+      caName: "org3-ca"
+      caNamespace: "default"
+    - mspID: Org4MSP
+      caName: "org4-ca"
+      caNamespace: "default"
   identities:
     OrdererMSP:
-      secretKey: user.yaml
-      secretName: orderer-admin-tls
+      secretKey: orderermsp.yaml
+      secretName: wallet
+      secretNamespace: default
+    OrdererMSP-tls:
+      secretKey: orderermsp.yaml
+      secretName: wallet
       secretNamespace: default
     OrdererMSP-sign:
-      secretKey: user.yaml
-      secretName: orderer-admin-sign
+      secretKey: orderermspsign.yaml
+      secretName: wallet
       secretNamespace: default
     Org1MSP:
-      secretKey: user.yaml
-      secretName: org1-admin
+      secretKey: org1msp.yaml
+      secretName: wallet
       secretNamespace: default
   externalPeerOrganizations: []
   ordererOrganizations:
@@ -457,7 +633,7 @@ EOF
 ```
 
 
-## Join peer to the channel
+## Join peer to the main channel - Org1MSP
 ```bash
 export IDENT_8=$(printf "%8s" "")
 export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )
@@ -466,7 +642,7 @@ kubectl apply -f - <<EOF
 apiVersion: hlf.kungfusoftware.es/v1alpha1
 kind: FabricFollowerChannel
 metadata:
-  name: demo-org1msp
+  name: main-org1msp
 spec:
   anchorPeers:
     - host: org1-peer0.default
@@ -474,11 +650,11 @@ spec:
     - host: org1-peer1.default
       port: 7051
   hlfIdentity:
-    secretKey: user.yaml
-    secretName: org1-admin
+    secretKey: org1msp.yaml
+    secretName: wallet
     secretNamespace: default
   mspId: Org1MSP
-  name: demo
+  name: main
   externalPeersToJoin: []
   orderers:
     - certificate: |
@@ -492,21 +668,113 @@ ${ORDERER0_TLS_CERT}
 EOF
 ```
 
-
-## Prepare connection string for a peer
+## Join peer to the main channel - Org2MSP
 ```bash
-kubectl hlf identity create --name org1-admin --namespace default \
-    --ca-name org1-ca --ca-namespace default \
-    --ca ca --mspid Org1MSP --enroll-id explorer-admin --enroll-secret explorer-adminpw \
-    --ca-enroll-id=enroll --ca-enroll-secret=enrollpw --ca-type=admin
+export IDENT_8=$(printf "%8s" "")
+export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )
 
-
-kubectl hlf networkconfig create --name=org1-cp \
-  -o Org1MSP -o OrdererMSP -c demo \
-  --identities=org1-admin.default --secret=org1-cp
+kubectl apply -f - <<EOF
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricFollowerChannel
+metadata:
+  name: main-org2msp
+spec:
+  anchorPeers:
+    - host: org2-peer0.default
+      port: 7051
+    - host: org2-peer1.default
+      port: 7051
+  hlfIdentity:
+    secretKey: org2msp.yaml
+    secretName: wallet
+    secretNamespace: default
+  mspId: Org2MSP
+  name: main
+  externalPeersToJoin: []
+  orderers:
+    - certificate: |
+${ORDERER0_TLS_CERT}
+      url: grpcs://ord-node1.default:7050
+  peersToJoin:
+    - name: org2-peer0
+      namespace: default
+    - name: org2-peer1
+      namespace: default
+EOF
 ```
 
+## Join peer to the main channel - Org3MSP
+```bash
+export IDENT_8=$(printf "%8s" "")
+export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )
 
+kubectl apply -f - <<EOF
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricFollowerChannel
+metadata:
+  name: main-org3msp
+spec:
+  anchorPeers:
+    - host: org3-peer0.default
+      port: 7051
+    - host: org3-peer1.default
+      port: 7051
+  hlfIdentity:
+    secretKey: org3msp.yaml
+    secretName: wallet
+    secretNamespace: default
+  mspId: Org3MSP
+  name: main
+  externalPeersToJoin: []
+  orderers:
+    - certificate: |
+${ORDERER0_TLS_CERT}
+      url: grpcs://ord-node1.default:7050
+  peersToJoin:
+    - name: org3-peer0
+      namespace: default
+    - name: org3-peer1
+      namespace: default
+EOF
+```
+
+## Join peer to the main channel - Org4MSP
+```bash
+export IDENT_8=$(printf "%8s" "")
+export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )
+
+kubectl apply -f - <<EOF
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricFollowerChannel
+metadata:
+  name: main-org4msp
+spec:
+  anchorPeers:
+    - host: org4-peer0.default
+      port: 7051
+    - host: org4-peer1.default
+      port: 7051
+  hlfIdentity:
+    secretKey: org4msp.yaml
+    secretName: wallet
+    secretNamespace: default
+  mspId: Org4MSP
+  name: main
+  externalPeersToJoin: []
+  orderers:
+    - certificate: |
+${ORDERER0_TLS_CERT}
+      url: grpcs://ord-node1.default:7050
+  peersToJoin:
+    - name: org4-peer0
+      namespace: default
+    - name: org4-peer1
+      namespace: default
+EOF
+```
+
+### For chaincode deployment, see [CHAINCODE_USAGE.md](../cti/CHAINCODE_USAGE.md)
+<!--
 ## Fetch the connection string from the Kubernetes secret
 ```bash
 kubectl get secret org1-cp -o jsonpath="{.data.config\.yaml}" | base64 --decode > org1.yaml
@@ -574,7 +842,7 @@ export VERSION="1.0"
 kubectl hlf chaincode approveformyorg --config=org1.yaml --user=org1-admin-default --peer=org1-peer0.default \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
-    --policy="OR('Org1MSP.member')" --channel=demo
+    --policy="OR('Org1MSP.member')" --channel=main
 ```
 
 
@@ -582,7 +850,7 @@ kubectl hlf chaincode approveformyorg --config=org1.yaml --user=org1-admin-defau
 ```bash
 kubectl hlf chaincode commit --config=org1.yaml --user=org1-admin-default --mspid=Org1MSP \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
-    --policy="OR('Org1MSP.member')" --channel=demo
+    --policy="OR('Org1MSP.member')" --channel=main
 ```
 
 
@@ -590,7 +858,7 @@ kubectl hlf chaincode commit --config=org1.yaml --user=org1-admin-default --mspi
 ```bash
 kubectl hlf chaincode invoke --config=org1.yaml \
     --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=initLedger
 ```
 
@@ -599,7 +867,7 @@ kubectl hlf chaincode invoke --config=org1.yaml \
 ```bash
 kubectl hlf chaincode query --config=org1.yaml \
     --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=GetAllAssets -a '[]'
 ```
 
@@ -608,7 +876,7 @@ kubectl hlf chaincode query --config=org1.yaml \
 ```bash
 kubectl hlf chaincode invoke --config=org1.yaml \
     --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=CreateAsset -a "asset7" -a blue -a "5" -a "tom" -a "100"
 ```
 
@@ -617,6 +885,7 @@ kubectl hlf chaincode invoke --config=org1.yaml \
 ```bash
 kubectl hlf chaincode query --config=org1.yaml \
     --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=ReadAsset -a asset7
 ```
+-->

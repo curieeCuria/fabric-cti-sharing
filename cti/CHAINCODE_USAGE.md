@@ -36,17 +36,31 @@ EOF
 ```
 
 
-## Fetch the connection string from the Kubernetes secret
+## Generate network config
 ```bash
-kubectl get secret org1-cp -o jsonpath="{.data.config\.yaml}" | base64 --decode > org1.yaml
+kubectl hlf inspect -c=main --output resources/network.yaml -o Org1MSP -o Org2MSP -o Org3MSP -o Org4MSP -o OrdererMSP
+```
+
+
+```bash
+kubectl hlf utils adduser --userPath=resources/org1msp.yaml --config=resources/network.yaml --username=admin --mspid=Org1MSP
+```
+```bash
+kubectl hlf utils adduser --userPath=resources/org2msp.yaml --config=resources/network.yaml --username=admin --mspid=Org2MSP
+```
+```bash
+kubectl hlf utils adduser --userPath=resources/org3msp.yaml --config=resources/network.yaml --username=admin --mspid=Org3MSP
+```
+```bash
+kubectl hlf utils adduser --userPath=resources/org4msp.yaml --config=resources/network.yaml --username=admin --mspid=Org4MSP
 ```
 
 
 ## Create metadata file
 ```bash
 rm code.tar.gz chaincode.tgz
-export CHAINCODE_NAME=ctitransfer104
-export CHAINCODE_LABEL=ctitransfer104
+export CHAINCODE_NAME=ctitransfer108
+export CHAINCODE_LABEL=ctitransfer108
 cat << METADATA-EOF > "metadata.json"
 {
     "type": "ccaas",
@@ -72,22 +86,40 @@ export PACKAGE_ID=$(kubectl hlf chaincode calculatepackageid --path=chaincode.tg
 echo "PACKAGE_ID=$PACKAGE_ID"
 
 kubectl hlf chaincode install --path=./chaincode.tgz \
-    --config=org1.yaml --language=golang --label=$CHAINCODE_LABEL --user=org1-admin-default --peer=org1-peer0.default
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org1-peer0.default
 
 kubectl hlf chaincode install --path=./chaincode.tgz \
-    --config=org1.yaml --language=golang --label=$CHAINCODE_LABEL --user=org1-admin-default --peer=org1-peer1.default
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org1-peer1.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org2-peer0.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org2-peer1.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org3-peer0.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org3-peer1.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org4-peer0.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org4-peer1.default
 ```
 
 
 ## Check if the chaincode is installed
 ```bash
-kubectl hlf chaincode queryinstalled --config=org1.yaml --user=org1-admin-default --peer=org1-peer0.default
+kubectl hlf chaincode queryinstalled --config=resources/network.yaml --user=admin --peer=org1-peer0.default
 ```
 
 
 ## Deploy chaincode container on cluster
 ```bash
-kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.0.4 \
+kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.0.8 \
     --name=$CHAINCODE_NAME \
     --namespace=default \
     --package-id=$PACKAGE_ID \
@@ -96,78 +128,108 @@ kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.0.4 \
 ```
 
 
-## Approve chaincode
+## Approve chaincode Org1MSP
 ```bash
 export SEQUENCE=1
 export VERSION="1.0"
-kubectl hlf chaincode approveformyorg --config=org1.yaml --user=org1-admin-default --peer=org1-peer0.default \
+kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org1-peer0.default \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
-    --policy="OR('Org1MSP.member')" --channel=demo
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
+```
+
+## Approve chaincode Org2MSP
+```bash
+export SEQUENCE=1
+export VERSION="1.0"
+kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org2-peer0.default \
+    --package-id=$PACKAGE_ID \
+    --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
+```
+
+## Approve chaincode Org3MSP
+```bash
+export SEQUENCE=1
+export VERSION="1.0"
+kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org3-peer0.default \
+    --package-id=$PACKAGE_ID \
+    --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
+```
+
+## Approve chaincode Org4MSP
+```bash
+export SEQUENCE=1
+export VERSION="1.0"
+kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org4-peer0.default \
+    --package-id=$PACKAGE_ID \
+    --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
 ```
 
 
 ## Commit chaincode
 ```bash
-kubectl hlf chaincode commit --config=org1.yaml --user=org1-admin-default --mspid=Org1MSP \
+kubectl hlf chaincode commit --config=resources/network.yaml --user=admin --mspid=Org1MSP \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
-    --policy="OR('Org1MSP.member')" --channel=demo
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
 ```
 
 
 ## Initialize the chaincode with sample CTI metadata
 ```bash
-kubectl hlf chaincode invoke --config=org1.yaml \
-    --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+kubectl hlf chaincode invoke --config=resources/network.yaml \
+    --user=admin --peer=org1-peer0.default \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=initLedger
 ```
 
 
 ## Query all CTI metadata
 ```bash
-kubectl hlf chaincode invoke --config=org1.yaml \
+kubectl hlf chaincode invoke --config=resources/network.yaml \
     --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=GetAllCTI
 ```
 
 
 ## Add new CTI metadata
 ```bash
-kubectl hlf chaincode invoke --config=org1.yaml \
-    --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+kubectl hlf chaincode invoke --config=resources/network.yaml \
+    --user=admin --peer=org1-peer0.default \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=CreateCTIMetadata \
-    --args="{\"UUID\":\"55555\",\"Description\":\"Example metadata 5555\",\"Timestamp\":\"2025-04-30T12:00:00Z\",\"SenderIdentity\":\"user5\",\"CID\":\"CID5555\",\"VaultKey\":\"vaultKey5555\",\"SHA256Hash\":\"sha256hash5555\"}"
+    --args="{\"UUID\":\"55555\",\"Description\":\"Example metadata 5555\",\"Timestamp\":\"2025-04-30T12:00:00Z\",\"SenderIdentity\":\"user5\",\"CID\":\"CID5555\",\"VaultKey\":\"vaultKey5555\",\"SHA256Hash\":\"sha256hash5555\",\"AccessList\":[\"HeadOfOperations\",\"IntelligenceUnit\"]}"
 ```
 
 
 ## Query CTI metadata by its UUID
 ```bash
-kubectl hlf chaincode invoke --config=org1.yaml \
-    --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+kubectl hlf chaincode invoke --config=resources/network.yaml \
+    --user=admin --peer=org1-peer0.default \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=ReadCTIMetadata \
-    --args="55555"
+    --args="12345"
 ```
 
 
 ## Update an existing CTI metadata entry
 ```bash
-kubectl hlf chaincode invoke --config=org1.yaml \
-    --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+kubectl hlf chaincode invoke --config=resources/network.yaml \
+    --user=admin --peer=org1-peer0.default \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=UpdateCTIMetadata \
-    --args="{\"UUID\":\"12345\",\"Description\":\"Updated metadata entry 12345\",\"Timestamp\":\"2025-05-01T12:00:00Z\",\"SenderIdentity\":\"user1\",\"CID\":\"CID12345-updated\",\"VaultKey\":\"vaultKey12345-updated\",\"SHA256Hash\":\"sha256hash12345-updated\"}"
+    --args="{\"UUID\":\"12345\",\"Description\":\"Updated metadata entry 12345\",\"Timestamp\":\"2025-05-01T12:00:00Z\",\"SenderIdentity\":\"user1\",\"CID\":\"CID12345-updated\",\"VaultKey\":\"vaultKey12345-updated\",\"SHA256Hash\":\"sha256hash12345-updated\",\"AccessList\":[\"HeadOfOperations\",\"IntelligenceUnit\",\"TacticalUnit\"]}"
 ```
 
 
 ## Delete CTI metadata by its UUID
 ```bash
-kubectl hlf chaincode invoke --config=org1.yaml \
-    --user=org1-admin-default --peer=org1-peer0.default \
-    --chaincode=$CHAINCODE_NAME --channel=demo \
+kubectl hlf chaincode invoke --config=resources/network.yaml \
+    --user=admin --peer=org1-peer0.default \
+    --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=DeleteCTIMetadata \
     --args="12345"
 ```
