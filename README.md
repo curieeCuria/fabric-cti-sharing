@@ -1,6 +1,19 @@
+# Fabric CTI sharing
+
+This project provides a system for securely sharing Cyber Threat Intelligence (CTI) data between organizations using Hyperledger Fabric, IPFS, and HashiCorp Vault. The system ensures secure storage, encryption, and controlled access to CTI data, enabling organizations to collaborate effectively while maintaining data confidentiality and integrity.
+
+### Key Components:
+- **Hyperledger Fabric**: Used as the blockchain platform to store and manage CTI metadata, ensuring immutability and transparency.
+- **IPFS (InterPlanetary File System)**: Used to store encrypted CTI data in a decentralized manner. The Content Identifier (CID) of the stored data is included in the metadata submitted to the Fabric ledger.
+- **HashiCorp Vault**: Used to securely store and retrieve AES encryption keys. The keys are used to encrypt and decrypt CTI data, ensuring that only authorized users can access the data.
+
+The `cli.py` script serves as the command-line interface for interacting with the system, allowing users to create, retrieve, decrypt, and manage CTI metadata and data.
+
 # CLI Usage
 
 The `cli.py` script provides commands for creating and decrypting CTI.
+
+Refer to the [Organization Access List](cti/README.md#organization-access-list) to see the permissions and actions available to each organization.
 
 ## Setting Environment Variables
 

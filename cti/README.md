@@ -36,3 +36,13 @@ sudo rm -rf ctivenv
 ## Chaincode Usage
 
 For instructions on deploying and invoking the chaincode for CTI transfer, see [CHAINCODE_USAGE.md](./CHAINCODE_USAGE.md).
+
+## Organization Access List
+
+| **Function**    | **Head<br>of<br>Operations** | **Intelligence<br>Unit** | **Tactical<br>Unit** | **Special<br>Operations<br>Unit** |
+| -------------- | ---------------------------- | ------------------------ | -------------------- | --------------------------------- |
+| Create CTI     | ✓                            | ✓                        | ✗                    | ✓                                 |
+| Read CTI | ✓                            | (✓)                      | ✓                    | ✓                                 |
+| Read all CTI | ✓                            | (✓)                      | (✓)                  | ✓                                 |
+| Update CTI    | ✓                            | (✓)                      | ✗                    | (✓)                               |
+| Delete CTI     | ✓                            | ✗                        | ✗                    | ✗                                 |
