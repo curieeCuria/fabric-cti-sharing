@@ -36,12 +36,23 @@ type CTIMetadata struct {
 }
 
 func (c *CTIChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
+	clientRole, found, err := ctx.GetClientIdentity().GetAttributeValue("role")
+	// Only "HeadOfOperations" can initialize the ledger
+	if err != nil {
+		return fmt.Errorf("failed to get client role: %v", err)
+	}
+	if !found {
+		return fmt.Errorf("client role not found")
+	}
+	if clientRole != "HeadOfOperations" {
+		return fmt.Errorf("client role %s is not authorized to invoke InitLedger", clientRole)
+	}
 	initialMetadata := []CTIMetadata{
 		{
 			UUID:           "12345",
 			Description:    "Initial metadata entry 12345",
 			Timestamp:      "2023-10-01T12:00:00Z",
-			SenderIdentity: "user1",
+			SenderIdentity: "HeadOfOperations",
 			CID:            "CID12345",
 			VaultKey:       "vaultKey12345",
 			SHA256Hash:     "sha256hash12345",
@@ -51,7 +62,7 @@ func (c *CTIChaincode) InitLedger(ctx contractapi.TransactionContextInterface) e
 			UUID:           "67890",
 			Description:    "Initial metadata entry 67890",
 			Timestamp:      "2023-10-02T12:00:00Z",
-			SenderIdentity: "user2",
+			SenderIdentity: "SpecialOperationsUnit",
 			CID:            "CID67890",
 			VaultKey:       "vaultKey67890",
 			SHA256Hash:     "sha256hash67890",
@@ -116,6 +127,14 @@ func (c *CTIChaincode) CreateCTIMetadata(ctx contractapi.TransactionContextInter
 }
 
 func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([]CTIMetadata, error) {
+	clientRole, found, err := ctx.GetClientIdentity().GetAttributeValue("role")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client role: %v", err)
+	}
+	if !found {
+		return nil, fmt.Errorf("client role not found")
+	}
+
 	iter, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state by range: %v", err)
@@ -134,7 +153,43 @@ func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal metadata: %v", err)
 		}
+
+		// Check access control
+		// "HeadOfOperations" and "SpecialOperationsUnit" can always access CTI metadata
+		// "TacticalUnit" can only access metadata if AccessList contains "TacticalUnit"
+		// "IntelligenceUnit" can only access metadata if AccessList contains "IntelligenceUnit" and SenderIdentity is "IntelligenceUnit"
+		if clientRole == "TacticalUnit" {
+			accessAllowed := false
+			for _, role := range metadata.AccessList {
+				if role == "TacticalUnit" {
+					accessAllowed = true
+					break
+				}
+			}
+			if !accessAllowed {
+				continue
+			}
+		} else if clientRole == "IntelligenceUnit" {
+			if metadata.SenderIdentity != "IntelligenceUnit" {
+				continue
+			}
+			accessAllowed := false
+			for _, role := range metadata.AccessList {
+				if role == "IntelligenceUnit" {
+					accessAllowed = true
+					break
+				}
+			}
+			if !accessAllowed {
+				continue
+			}
+		}
+
 		metadataList = append(metadataList, metadata)
+	}
+
+	if clientRole != "HeadOfOperations" && clientRole != "SpecialOperationsUnit" && clientRole != "TacticalUnit" && clientRole != "IntelligenceUnit" {
+		return nil, fmt.Errorf("client role %s is not authorized to access CTI metadata", clientRole)
 	}
 
 	return metadataList, nil
@@ -158,6 +213,7 @@ func (c *CTIChaincode) ReadCTIMetadata(ctx contractapi.TransactionContextInterfa
 
 	// Check access control, "HeadOfOperations" and "SpecialOperationsUnit" can always read CTI metadata
 	// "TactialUnit" can only read metadata if AccessList contains "TacticalUnit"
+	// "IntelligenceUnit" can only read metadata if AccessList contains "IntelligenceUnit" and SenderIdentity is "IntelligenceUnit"
 	clientRole, found, err := ctx.GetClientIdentity().GetAttributeValue("role")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client role: %v", err)
@@ -173,6 +229,16 @@ func (c *CTIChaincode) ReadCTIMetadata(ctx contractapi.TransactionContextInterfa
 		}
 		return nil, fmt.Errorf("client role %s is not authorized to read CTI metadata with UUID %s", clientRole, uuid)
 	}
+
+	if clientRole == "IntelligenceUnit" {
+		for _, role := range metadata.AccessList {
+			if role == "IntelligenceUnit" && metadata.SenderIdentity == "IntelligenceUnit" {
+				return &metadata, nil
+			}
+		}
+		return nil, fmt.Errorf("client role %s is not authorized to read CTI metadata with UUID %s", clientRole, uuid)
+	}
+
 	if clientRole != "HeadOfOperations" && clientRole != "SpecialOperationsUnit" {
 		return nil, fmt.Errorf("client role %s is not authorized to read CTI metadata with UUID %s", clientRole, uuid)
 	}
@@ -188,14 +254,63 @@ func (c *CTIChaincode) UpdateCTIMetadata(ctx contractapi.TransactionContextInter
 	}
 
 	metadataKey := fmt.Sprintf("CTI_%s", metadata.UUID)
-	exists, err := ctx.GetStub().GetState(metadataKey)
+	existingMetadataBytes, err := ctx.GetStub().GetState(metadataKey)
 	if err != nil {
 		return fmt.Errorf("failed to check if metadata exists: %v", err)
 	}
-	if exists == nil {
+	if existingMetadataBytes == nil {
 		return fmt.Errorf("metadata with UUID %s does not exist", metadata.UUID)
 	}
 
+	var existingMetadata CTIMetadata
+	err = json.Unmarshal(existingMetadataBytes, &existingMetadata)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal existing metadata: %v", err)
+	}
+
+	// Check access control
+	clientRole, found, err := ctx.GetClientIdentity().GetAttributeValue("role")
+	if err != nil {
+		return fmt.Errorf("failed to get client role: %v", err)
+	}
+	if !found {
+		return fmt.Errorf("client role not found")
+	}
+
+	// Access control logic
+	switch clientRole {
+	case "HeadOfOperations":
+		// "HeadOfOperations" can update any CTI
+		break
+	case "SpecialOperationsUnit":
+		// "SpecialOperationsUnit" cannot update CTI where SenderIdentity is "HeadOfOperations"
+		if existingMetadata.SenderIdentity == "HeadOfOperations" {
+			return fmt.Errorf("client role %s is not authorized to update CTI metadata with UUID %s", clientRole, metadata.UUID)
+		}
+	case "IntelligenceUnit":
+		// "IntelligenceUnit" can update CTI if AccessList contains "IntelligenceUnit" and SenderIdentity is "IntelligenceUnit"
+		if existingMetadata.SenderIdentity != "IntelligenceUnit" {
+			return fmt.Errorf("client role %s is not authorized to update CTI metadata with UUID %s", clientRole, metadata.UUID)
+		}
+		accessAllowed := false
+		for _, role := range existingMetadata.AccessList {
+			if role == "IntelligenceUnit" {
+				accessAllowed = true
+				break
+			}
+		}
+		if !accessAllowed {
+			return fmt.Errorf("client role %s is not authorized to update CTI metadata with UUID %s", clientRole, metadata.UUID)
+		}
+	case "TacticalUnit":
+		// "TacticalUnit" cannot update any CTI
+		return fmt.Errorf("client role %s is not authorized to update CTI metadata with UUID %s", clientRole, metadata.UUID)
+	default:
+		// Unauthorized role
+		return fmt.Errorf("client role %s is not authorized to update CTI metadata with UUID %s", clientRole, metadata.UUID)
+	}
+
+	// Update the metadata
 	metadataBytes, err := json.Marshal(metadata)
 	if err != nil {
 		return fmt.Errorf("failed to marshal metadata: %v", err)
@@ -214,6 +329,20 @@ func (c *CTIChaincode) DeleteCTIMetadata(ctx contractapi.TransactionContextInter
 		return fmt.Errorf("metadata with UUID %s does not exist", uuid)
 	}
 
+	clientRole, found, err := ctx.GetClientIdentity().GetAttributeValue("role")
+	if err != nil {
+		return fmt.Errorf("failed to get client role: %v", err)
+	}
+	if !found {
+		return fmt.Errorf("client role not found")
+	}
+
+	// Only "HeadOfOperations" can delete CTI metadata
+	if clientRole != "HeadOfOperations" {
+		return fmt.Errorf("client role %s is not authorized to delete CTI metadata", clientRole)
+	}
+
+	// Delete the metadata
 	return ctx.GetStub().DelState(metadataKey)
 }
 
