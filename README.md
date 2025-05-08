@@ -1,6 +1,6 @@
 # Fabric CTI sharing
 
-This project provides a system for securely sharing Cyber Threat Intelligence (CTI) data between organizations using Hyperledger Fabric, IPFS, and HashiCorp Vault. The system ensures secure storage, encryption, and controlled access to CTI data, enabling organizations to collaborate effectively while maintaining data confidentiality and integrity.
+This project provides a PoC system for securely sharing Cyber Threat Intelligence (CTI) data between organizations using Hyperledger Fabric, IPFS, and HashiCorp Vault. The system ensures secure storage, encryption, and controlled access to CTI data, enabling organizations to collaborate effectively while maintaining data confidentiality and integrity.
 
 ### Key Components:
 - **Hyperledger Fabric**: Used as the blockchain platform to store and manage CTI metadata, ensuring immutability and transparency.
