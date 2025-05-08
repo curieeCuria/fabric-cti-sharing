@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import os
 from cti.utils import (
+    get_sender_identity,
     generate_aes_key,
     encrypt_cti_data,
     store_aes_key,
@@ -25,6 +26,9 @@ CHANNEL = os.getenv("CHANNEL", "main")
 
 def create_cti(args):
     try:
+        # Get sender identity based on PEERNAME
+        sender_identity, sender_identity_id = get_sender_identity(PEERNAME)
+
         # Initialize Vault client
         creator_client = hvac.Client(
             url=VAULT_ADDR,
@@ -38,20 +42,20 @@ def create_cti(args):
         encrypted_data = encrypt_cti_data(aes_key, args.filepath)
 
         # Store AES key in Vault
-        aes_key_name = f"{args.sender_identity}_{os.path.basename(args.filepath).split('.')[0]}_{uuid.uuid4().hex[:6]}"
+        aes_key_name = f"{sender_identity_id}_{os.path.basename(args.filepath).split('.')[0]}_{uuid.uuid4().hex[:6]}"
         store_aes_key(creator_client, aes_key_name, aes_key)
 
         # Add encrypted data to IPFS
         cid = add_file_to_ipfs(encrypted_data, filename="encrypted_data")
 
         # Gather metadata
-        metadata = gather_cti_metadata(args.description, args.sender_identity, cid, aes_key_name, args.filepath)
+        metadata = gather_cti_metadata(args.description, sender_identity, cid, aes_key_name, args.filepath)
         metadata["AccessList"] = args.roles.split(",")
 
         # Submit metadata to Fabric
         submit_metadata_to_fabric(
             metadata=metadata,
-            chaincode_name="ctitransfer104",
+            chaincode_name="ctitransfer109",
             channel_name="main",
             config_file="cti/resources/network.yaml",
             user="admin",
@@ -66,7 +70,7 @@ def decrypt_cti(args):
         # Retrieve metadata from Fabric
         metadata = get_metadata_from_fabric(
             uuid=args.uuid,
-            chaincode_name="ctitransfer104",
+            chaincode_name="ctitransfer109",
             channel_name="main",
             config_file="cti/resources/network.yaml",
             user="admin",
@@ -120,7 +124,6 @@ def main():
     # Subcommand for creating CTI
     create_parser = subparsers.add_parser("create", help="Create and submit CTI metadata")
     create_parser.add_argument("filepath", type=str, help="Path to the CTI file")
-    create_parser.add_argument("sender_identity", type=str, help="Sender's identity/organization")
     create_parser.add_argument("description", type=str, help="Description of the CTI")
     create_parser.add_argument("roles", type=str, help="Roles to include in the AccessList (Comma-separated)")
     create_parser.set_defaults(func=create_cti)

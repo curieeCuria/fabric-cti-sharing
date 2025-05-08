@@ -74,6 +74,21 @@ def calculate_file_sha256(filepath: str) -> str:
     except IOError as e:
         raise IOError(f"An error occurred while reading file {filepath}: {e}") from e
 
+def get_sender_identity(peername: str) -> str:
+    """
+    Get the sender identity based on the peer name.
+    """
+    if peername.startswith("org1"):
+        return "HeadOfOperations", "HO"
+    elif peername.startswith("org2"):
+        return "IntelligenceUnit", "IU"
+    elif peername.startswith("org3"):
+        return "TacticalUnit", "TU"
+    elif peername.startswith("org4"):
+        return "SpecialOperationsUnit", "SOU"
+    else:
+        raise ValueError(f"Unknown peer name: {peername}")
+
 def generate_aes_key() -> bytes:
     """
     Generate a random AES key.
