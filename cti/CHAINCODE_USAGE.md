@@ -59,8 +59,8 @@ kubectl hlf utils adduser --userPath=resources/org4msp.yaml --config=resources/n
 ## Create metadata file
 ```bash
 rm code.tar.gz chaincode.tgz
-export CHAINCODE_NAME=ctitransfer108
-export CHAINCODE_LABEL=ctitransfer108
+export CHAINCODE_NAME=ctitransfer109
+export CHAINCODE_LABEL=ctitransfer109
 cat << METADATA-EOF > "metadata.json"
 {
     "type": "ccaas",
@@ -119,7 +119,7 @@ kubectl hlf chaincode queryinstalled --config=resources/network.yaml --user=admi
 
 ## Deploy chaincode container on cluster
 ```bash
-kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.0.8 \
+kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.0.9 \
     --name=$CHAINCODE_NAME \
     --namespace=default \
     --package-id=$PACKAGE_ID \
@@ -198,10 +198,10 @@ kubectl hlf chaincode invoke --config=resources/network.yaml \
 ## Add new CTI metadata
 ```bash
 kubectl hlf chaincode invoke --config=resources/network.yaml \
-    --user=admin --peer=org1-peer0.default \
+    --user=admin --peer=org2-peer0.default \
     --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=CreateCTIMetadata \
-    --args="{\"UUID\":\"55555\",\"Description\":\"Example metadata 5555\",\"Timestamp\":\"2025-04-30T12:00:00Z\",\"SenderIdentity\":\"user5\",\"CID\":\"CID5555\",\"VaultKey\":\"vaultKey5555\",\"SHA256Hash\":\"sha256hash5555\",\"AccessList\":[\"HeadOfOperations\",\"IntelligenceUnit\"]}"
+    --args="{\"UUID\":\"55555\",\"Description\":\"Example metadata 5555\",\"Timestamp\":\"2025-04-30T12:00:00Z\",\"SenderIdentity\":\"IntelligenceUnit\",\"CID\":\"CID5555\",\"VaultKey\":\"vaultKey5555\",\"SHA256Hash\":\"sha256hash5555\",\"AccessList\":[\"HeadOfOperations\",\"IntelligenceUnit\"]}"
 ```
 
 
@@ -221,7 +221,7 @@ kubectl hlf chaincode invoke --config=resources/network.yaml \
     --user=admin --peer=org1-peer0.default \
     --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=UpdateCTIMetadata \
-    --args="{\"UUID\":\"12345\",\"Description\":\"Updated metadata entry 12345\",\"Timestamp\":\"2025-05-01T12:00:00Z\",\"SenderIdentity\":\"user1\",\"CID\":\"CID12345-updated\",\"VaultKey\":\"vaultKey12345-updated\",\"SHA256Hash\":\"sha256hash12345-updated\",\"AccessList\":[\"HeadOfOperations\",\"IntelligenceUnit\",\"TacticalUnit\"]}"
+    --args="{\"UUID\":\"12345\",\"Description\":\"Updated metadata entry 12345\",\"Timestamp\":\"2025-05-01T12:00:00Z\",\"SenderIdentity\":\"HeadOfOperations\",\"CID\":\"CID12345-updated\",\"VaultKey\":\"vaultKey12345-updated\",\"SHA256Hash\":\"sha256hash12345-updated\",\"AccessList\":[\"HeadOfOperations\",\"IntelligenceUnit\",\"TacticalUnit\"]}"
 ```
 
 
