@@ -10,6 +10,8 @@ from cti.utils import (
     gather_cti_metadata,
     submit_metadata_to_fabric,
     get_metadata_from_fabric,
+    get_all_metadata_from_fabric,
+    delete_metadata_from_fabric,
     retrieve_file_from_ipfs,
     retrieve_aes_key,
     decrypt_cti_data
@@ -117,6 +119,52 @@ def decrypt_cti(args):
     except Exception as e:
         print(f"Error decrypting CTI: {e}")
 
+def get_all_cti(args):
+    try:
+        # Retrieve all CTI metadata from Fabric
+        metadata_list = get_all_metadata_from_fabric(
+            chaincode_name="ctitransfer109",
+            channel_name="main",
+            config_file="cti/resources/network.yaml",
+            user="admin",
+            peer=PEERNAME
+        )
+
+        if not metadata_list:
+            print("No CTI metadata found.")
+            return
+
+        print(f"Total CTI retrieved: {len(metadata_list)}")
+        print("CTI Metadata:")
+        print("-" * 50)
+        for metadata in metadata_list:
+            print(f"UUID: {metadata['UUID']}")
+            print(f"  Description: {metadata['Description']}")
+            print(f"  Timestamp: {metadata['Timestamp']}")
+            print(f"  Sender Identity: {metadata['SenderIdentity']}")
+            print(f"  CID: {metadata['CID']}")
+            print(f"  Vault Key: {metadata['VaultKey']}")
+            print(f"  SHA256 Hash: {metadata['SHA256Hash']}")
+            print(f"  Access List: {', '.join(metadata['AccessList'])}")
+            print("-" * 50)
+    except Exception as e:
+        print(f"Error retrieving CTI metadata: {e}")
+
+def delete_cti(args):
+    try:
+        # Delete CTI metadata from Fabric
+        delete_metadata_from_fabric(
+            uuid=args.uuid,
+            chaincode_name="ctitransfer109",
+            channel_name="main",
+            config_file="cti/resources/network.yaml",
+            user="admin",
+            peer=PEERNAME
+        )
+        print(f"CTI with UUID '{args.uuid}' deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting CTI: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description="CTI Sharing System CLI")
     subparsers = parser.add_subparsers(title="Commands", dest="command")
@@ -133,6 +181,15 @@ def main():
     decrypt_parser.add_argument("uuid", type=str, help="UUID of the CTI metadata")
     decrypt_parser.add_argument("output", type=str, nargs="?", default=None, help="Path to save the decrypted file (optional)")
     decrypt_parser.set_defaults(func=decrypt_cti)
+
+    # Subcommand for retrieving all CTI metadata
+    get_all_parser = subparsers.add_parser("getall", help="Retrieve and display all CTI metadata")
+    get_all_parser.set_defaults(func=get_all_cti)
+
+    # Subcommand for deleting CTI metadata
+    delete_parser = subparsers.add_parser("delete", help="Delete CTI metadata using UUID")
+    delete_parser.add_argument("uuid", type=str, help="UUID of the CTI metadata to delete")
+    delete_parser.set_defaults(func=delete_cti)
 
     args = parser.parse_args()
     if args.command:

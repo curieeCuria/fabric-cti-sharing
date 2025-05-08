@@ -242,6 +242,47 @@ def get_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, 
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
 
+def get_all_metadata_from_fabric(chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str) -> list:
+    """
+    Retrieve all CTI metadata from the Hyperledger Fabric ledger.
+    """
+    command = [
+        "kubectl", "hlf", "chaincode", "invoke",
+        "--config", config_file,
+        "--user", user,
+        "--peer", peer,
+        "--chaincode", chaincode_name,
+        "--channel", channel_name,
+        "--fcn", "GetAllCTI",
+        "--args", "[]"
+    ]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to query chaincode: {result.stderr}")
+    
+    try:
+        metadata_list = json.loads(result.stdout)
+        return metadata_list
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
+
+def delete_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str):
+    """
+    Delete CTI metadata from the Hyperledger Fabric ledger by UUID.
+    """
+    command = [
+        "kubectl", "hlf", "chaincode", "invoke",
+        "--config", config_file,
+        "--user", user,
+        "--peer", peer,
+        "--chaincode", chaincode_name,
+        "--channel", channel_name,
+        "--fcn", "DeleteCTIMetadata",
+        "--args", uuid
+    ]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to invoke chaincode: {result.stderr}")
 
 # Example usage: python utils.py sample_cti.json
 if __name__ == "__main__":
