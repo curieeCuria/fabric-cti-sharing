@@ -189,7 +189,7 @@ kubectl hlf chaincode invoke --config=resources/network.yaml \
 ## Query all CTI metadata
 ```bash
 kubectl hlf chaincode invoke --config=resources/network.yaml \
-    --user=org1-admin-default --peer=org1-peer0.default \
+    --user=admin --peer=org1-peer0.default \
     --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=GetAllCTI
 ```
