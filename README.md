@@ -36,7 +36,17 @@ python cli.py create <filepath> <description> <roles>
 python cli.py create cti/sample_cti.json "Malicious URL" "HeadOfOperations,TacticalUnit"
 ```
 
-## Receiving CTI
+## Getting All CTI metadata
+
+To retrieve and display all CTI metadata:
+
+```bash
+python cli.py getall
+```
+
+This command retrieves all CTI metadata visible to the organization from the Fabric ledger and displays it in a formatted way.
+
+## Decrypting CTI
 
 To query and decrypt CTI using its UUID:
 
@@ -52,6 +62,13 @@ If no output path is provided, the decrypted data will be printed to the console
 python cli.py decrypt 9c01dc9d-cc3f-4b9a-8240-ac8e5b12e431 decrypted_data.json
 ```
 
+## Deleting CTI metadata
+
+To delete CTI metadata (HeadOfOperations only):
+
+```bash
+python cli.py delete <uuid>
+```
 
 ## License
 
