@@ -774,6 +774,269 @@ EOF
 ```
 
 ### For chaincode deployment, see [CHAINCODE_USAGE.md](../cti/CHAINCODE_USAGE.md)
+
+
+## Create private channel
+```bash
+export IDENT_12=$(printf "%16s" "")
+# tls CA certificate
+export ORDERER_TLS_CERT=$(kubectl get fabriccas ord-ca -o=jsonpath='{.status.tlsca_cert}' | sed -e "s/^/${IDENT_12}/" )
+
+export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_12}/" )
+export ORDERER1_TLS_CERT=$(kubectl get fabricorderernodes ord-node2 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_12}/" )
+export ORDERER2_TLS_CERT=$(kubectl get fabricorderernodes ord-node3 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_12}/" )
+export ORDERER3_TLS_CERT=$(kubectl get fabricorderernodes ord-node4 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_12}/" )
+
+export ORDERER0_SIGN_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.signCert}' | sed -e "s/^/${IDENT_12}/" )
+export ORDERER1_SIGN_CERT=$(kubectl get fabricorderernodes ord-node2 -o=jsonpath='{.status.signCert}' | sed -e "s/^/${IDENT_12}/" )
+export ORDERER2_SIGN_CERT=$(kubectl get fabricorderernodes ord-node3 -o=jsonpath='{.status.signCert}' | sed -e "s/^/${IDENT_12}/" )
+export ORDERER3_SIGN_CERT=$(kubectl get fabricorderernodes ord-node4 -o=jsonpath='{.status.signCert}' | sed -e "s/^/${IDENT_12}/" )
+
+kubectl apply -f - <<EOF
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricMainChannel
+metadata:
+  name: private
+spec:
+  name: private
+  adminOrdererOrganizations:
+    - mspID: OrdererMSP
+  adminPeerOrganizations:
+    - mspID: Org1MSP
+    - mspID: Org4MSP
+  channelConfig:
+    application:
+      acls: null
+      capabilities:
+        - V2_5
+      policies: null
+    capabilities:
+      - V3_0
+    orderer:
+      batchSize:
+        absoluteMaxBytes: 1048576
+        maxMessageCount: 100
+        preferredMaxBytes: 524288
+      batchTimeout: 2s
+      capabilities:
+        - V2_0
+      smartBFT:
+        request_batch_max_count: 100
+        request_batch_max_bytes: 10485760
+        request_batch_max_interval: "50ms"
+        incoming_message_buffer_size: 200
+        request_pool_size: 100000
+        request_forward_timeout: "2s"
+        request_complain_timeout: "20s"
+        request_auto_remove_timeout: "3m"
+        view_change_resend_interval: "5s"
+        view_change_timeout: "20s"
+        leader_heartbeat_timeout: "1m0s"
+        leader_heartbeat_count: 10
+        collect_timeout: "1s"
+        sync_on_start: true
+        speed_up_view_change: false
+        leader_rotation: 0 # unspecified
+        decisions_per_leader: 3
+        request_max_bytes: 0
+
+      consenterMapping:
+      - host: orderer0-ord.localho.st
+        port: 443
+        id: 1
+        msp_id: OrdererMSP
+        client_tls_cert: |
+${ORDERER0_TLS_CERT}
+
+        server_tls_cert: |
+${ORDERER0_TLS_CERT}
+
+        identity: |
+${ORDERER0_SIGN_CERT}
+
+      - host: orderer1-ord.localho.st
+        port: 443
+        id: 2
+        msp_id: OrdererMSP
+        client_tls_cert: |
+${ORDERER1_TLS_CERT}
+
+        server_tls_cert: |
+${ORDERER1_TLS_CERT}
+
+        identity: |
+${ORDERER1_SIGN_CERT}
+
+      - host: orderer2-ord.localho.st
+        port: 443
+        id: 3
+        msp_id: OrdererMSP
+        client_tls_cert: |
+${ORDERER2_TLS_CERT}
+
+        server_tls_cert: |
+${ORDERER2_TLS_CERT}
+
+        identity: |
+${ORDERER2_SIGN_CERT}
+
+      - host: orderer3-ord.localho.st
+        port: 443
+        id: 4
+        msp_id: OrdererMSP
+        client_tls_cert: |
+${ORDERER3_TLS_CERT}
+
+        server_tls_cert: |
+${ORDERER3_TLS_CERT}
+
+        identity: |
+${ORDERER3_SIGN_CERT}
+
+      ordererType: BFT
+      policies: null
+      state: STATE_NORMAL
+    policies: null
+  externalOrdererOrganizations: []
+  peerOrganizations:
+    - mspID: Org1MSP
+      caName: "org1-ca"
+      caNamespace: "default"
+    - mspID: Org4MSP
+      caName: "org4-ca"
+      caNamespace: "default"
+  identities:
+    OrdererMSP:
+      secretKey: orderermsp.yaml
+      secretName: wallet
+      secretNamespace: default
+    OrdererMSP-tls:
+      secretKey: orderermsp.yaml
+      secretName: wallet
+      secretNamespace: default
+    OrdererMSP-sign:
+      secretKey: orderermspsign.yaml
+      secretName: wallet
+      secretNamespace: default
+    Org1MSP:
+      secretKey: org1msp.yaml
+      secretName: wallet
+      secretNamespace: default
+    Org4MSP:
+      secretKey: org4msp.yaml
+      secretName: wallet
+      secretNamespace: default
+  externalPeerOrganizations: []
+  ordererOrganizations:
+    - caName: "ord-ca"
+      caNamespace: "default"
+      externalOrderersToJoin:
+        - host: ord-node1
+          port: 7053
+        - host: ord-node2
+          port: 7053
+        - host: ord-node3
+          port: 7053
+        - host: ord-node4
+          port: 7053
+      mspID: OrdererMSP
+      ordererEndpoints:
+        - orderer0-ord.localho.st:443
+        - orderer1-ord.localho.st:443
+        - orderer2-ord.localho.st:443
+        - orderer3-ord.localho.st:443
+      orderersToJoin: []
+  orderers:
+    - host: ord-node1
+      port: 7050
+      tlsCert: |
+${ORDERER0_TLS_CERT}
+    - host: ord-node2
+      port: 7050
+      tlsCert: |-
+${ORDERER1_TLS_CERT}
+    - host: ord-node3
+      port: 7050
+      tlsCert: |-
+${ORDERER2_TLS_CERT}
+    - host: ord-node4
+      port: 7050
+      tlsCert: |-
+${ORDERER2_TLS_CERT}
+
+EOF
+```
+
+## Join peer to the private channel - Org1MSP
+```bash
+export IDENT_8=$(printf "%8s" "")
+export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )
+
+kubectl apply -f - <<EOF
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricFollowerChannel
+metadata:
+  name: private-org1msp
+spec:
+  anchorPeers:
+    - host: org1-peer0.default
+      port: 7051
+    - host: org1-peer1.default
+      port: 7051
+  hlfIdentity:
+    secretKey: org1msp.yaml
+    secretName: wallet
+    secretNamespace: default
+  mspId: Org1MSP
+  name: private
+  externalPeersToJoin: []
+  orderers:
+    - certificate: |
+${ORDERER0_TLS_CERT}
+      url: grpcs://ord-node1.default:7050
+  peersToJoin:
+    - name: org1-peer0
+      namespace: default
+    - name: org1-peer1
+      namespace: default
+EOF
+```
+
+## Join peer to the private channel - Org1MSP
+```bash
+export IDENT_8=$(printf "%8s" "")
+export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )
+
+kubectl apply -f - <<EOF
+apiVersion: hlf.kungfusoftware.es/v1alpha1
+kind: FabricFollowerChannel
+metadata:
+  name: private-org4msp
+spec:
+  anchorPeers:
+    - host: org4-peer0.default
+      port: 7051
+    - host: org4-peer1.default
+      port: 7051
+  hlfIdentity:
+    secretKey: org4msp.yaml
+    secretName: wallet
+    secretNamespace: default
+  mspId: Org4MSP
+  name: private
+  externalPeersToJoin: []
+  orderers:
+    - certificate: |
+${ORDERER0_TLS_CERT}
+      url: grpcs://ord-node1.default:7050
+  peersToJoin:
+    - name: org4-peer0
+      namespace: default
+    - name: org4-peer1
+      namespace: default
+EOF
+```
+
 <!--
 ## Fetch the connection string from the Kubernetes secret
 ```bash
