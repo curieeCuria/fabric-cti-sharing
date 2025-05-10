@@ -3,3 +3,7 @@ ipfs/secret.yaml
 cti/ctivenv/
 cti/__pycache__/
 cti/resources/*
+cti/keystore/
+caliper-benchmark/node_modules/
+caliper-benchmark/package-lock.json
+caliper-benchmark/report.html

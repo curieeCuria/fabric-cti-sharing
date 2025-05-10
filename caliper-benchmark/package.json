@@ -1,0 +1,12 @@
+{
+    "scripts": {
+        "start": "caliper launch manager --caliper-bind-sut fabric:fabric-gateway --caliper-workspace . --caliper-benchconfig benchmarkConfig.yaml --caliper-networkconfig networkConfig.yaml"
+    },
+    "dependencies": {
+        "@grpc/grpc-js": "^1.10.3",
+        "@hyperledger/fabric-gateway": "^1.5.0"
+    },
+    "devDependencies": {
+        "@hyperledger/caliper-cli": "^0.6.0"
+    }
+}

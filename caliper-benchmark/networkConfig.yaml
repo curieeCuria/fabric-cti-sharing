@@ -1,0 +1,59 @@
+name: Fabric CTI Sharing Caliper Test
+version: "2.0.0"
+
+caliper:
+  blockchain: fabric
+
+channels:
+  - channelName: main
+    contracts:
+      - id: ctitransfer109
+
+organizations:
+  - mspid: Org1MSP
+    identities:
+      certificates:
+        - name: 'Admin'
+          clientPrivateKey:
+            path: ../cti/keystore/org1key.pem
+          clientSignedCert:
+            path: ../cti/keystore/org1cert.pem
+    connectionProfile:
+      path: ../cti/resources/network.yaml
+      discover: true
+
+  - mspid: Org2MSP
+    identities:
+      certificates:
+        - name: 'Admin'
+          clientPrivateKey:
+            path: ../cti/keystore/org2key.pem
+          clientSignedCert:
+            path: ../cti/keystore/org2cert.pem
+    connectionProfile:
+      path: ../cti/resources/network.yaml
+      discover: true
+
+  - mspid: Org3MSP
+    identities:
+      certificates:
+        - name: 'Admin'
+          clientPrivateKey:
+            path: ../cti/keystore/org3key.pem
+          clientSignedCert:
+            path: ../cti/keystore/org3cert.pem
+    connectionProfile:
+      path: ../cti/resources/network.yaml
+      discover: true
+
+  - mspid: Org4MSP
+    identities:
+      certificates:
+        - name: 'Admin'
+          clientPrivateKey:
+            path: ../cti/keystore/org4key.pem
+          clientSignedCert:
+            path: ../cti/keystore/org4cert.pem
+    connectionProfile:
+      path: ../cti/resources/network.yaml
+      discover: true

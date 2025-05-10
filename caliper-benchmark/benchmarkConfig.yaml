@@ -1,0 +1,20 @@
+test:
+  name: CTIChaincode Test
+  description: Testing CTIChaincode operations
+  workers:
+    type: local
+    number: 1
+  rounds:
+    - label: CreateCTIMetadata
+      description: Test CreateCTIMetadata function
+      txDuration: 10
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 25
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: ctitransfer109
+          channel: main
+          function: CreateCTIMetadata
