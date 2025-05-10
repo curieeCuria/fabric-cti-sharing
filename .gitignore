@@ -4,6 +4,10 @@ cti/ctivenv/
 cti/__pycache__/
 cti/resources/*
 cti/keystore/
+cti/chaincode.tgz
+cti/code.tar.gz
+cti/connection.json
+cti/metadata.json
 caliper-benchmark/node_modules/
 caliper-benchmark/package-lock.json
 caliper-benchmark/report.html
