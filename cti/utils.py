@@ -242,29 +242,47 @@ def get_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, 
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
 
-def get_all_metadata_from_fabric(chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str) -> list:
+def get_all_metadata_from_fabric(chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str, page_size: int = 2000) -> list:
     """
-    Retrieve all CTI metadata from the Hyperledger Fabric ledger.
+    Retrieve all CTI metadata from the Hyperledger Fabric ledger with client-side pagination.
     """
-    command = [
-        "kubectl", "hlf", "chaincode", "invoke",
-        "--config", config_file,
-        "--user", user,
-        "--peer", peer,
-        "--chaincode", chaincode_name,
-        "--channel", channel_name,
-        "--fcn", "GetAllCTI",
-        "--args", "[]"
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"Failed to query chaincode: {result.stderr}")
-    
-    try:
-        metadata_list = json.loads(result.stdout)
-        return metadata_list
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
+    all_metadata = []
+    bookmark = ""
+
+    while True:
+        print(f"Invoking chaincode with page_size={page_size}, bookmark={bookmark}")
+        command = [
+            "kubectl", "hlf", "chaincode", "invoke",
+            "--config", config_file,
+            "--user", user,
+            "--peer", peer,
+            "--chaincode", chaincode_name,
+            "--channel", channel_name,
+            "--fcn", "GetAllCTI",
+            "--args", str(page_size),
+            "--args", f'{bookmark}'
+        ]
+
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Failed to query chaincode: {result.stderr}")
+
+        try:
+            print(f"Chaincode response: {result.stdout}")
+            response = json.loads(result.stdout)
+            metadata_list = response.get("metadataList", [])
+            bookmark = response.get("bookmark", "")
+
+            print(f"Retrieved {len(metadata_list)} entries, next bookmark: {bookmark}")
+            all_metadata.extend(metadata_list)
+
+            if not bookmark:
+                print("No more pages. Exiting loop.")
+                break
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
+
+    return all_metadata
 
 def delete_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, config_file: str, user: str, peer: str):
     """

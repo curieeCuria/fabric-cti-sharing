@@ -44,14 +44,8 @@ kubectl hlf inspect -c=main --output resources/network.yaml -o Org1MSP -o Org2MS
 
 ```bash
 kubectl hlf utils adduser --userPath=resources/org1msp.yaml --config=resources/network.yaml --username=admin --mspid=Org1MSP
-```
-```bash
 kubectl hlf utils adduser --userPath=resources/org2msp.yaml --config=resources/network.yaml --username=admin --mspid=Org2MSP
-```
-```bash
 kubectl hlf utils adduser --userPath=resources/org3msp.yaml --config=resources/network.yaml --username=admin --mspid=Org3MSP
-```
-```bash
 kubectl hlf utils adduser --userPath=resources/org4msp.yaml --config=resources/network.yaml --username=admin --mspid=Org4MSP
 ```
 
@@ -59,8 +53,8 @@ kubectl hlf utils adduser --userPath=resources/org4msp.yaml --config=resources/n
 ## Create metadata file
 ```bash
 rm code.tar.gz chaincode.tgz
-export CHAINCODE_NAME=ctitransfer109
-export CHAINCODE_LABEL=ctitransfer109
+export CHAINCODE_NAME=ctitransfer111-2
+export CHAINCODE_LABEL=ctitransfer111-2
 cat << METADATA-EOF > "metadata.json"
 {
     "type": "ccaas",
@@ -119,7 +113,7 @@ kubectl hlf chaincode queryinstalled --config=resources/network.yaml --user=admi
 
 ## Deploy chaincode container on cluster
 ```bash
-kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.0.9 \
+kubectl hlf externalchaincode sync --image=betoni/cti-transfer:v1.1.1 \
     --name=$CHAINCODE_NAME \
     --namespace=default \
     --package-id=$PACKAGE_ID \
@@ -140,8 +134,6 @@ kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=adm
 
 ## Approve chaincode Org2MSP
 ```bash
-export SEQUENCE=1
-export VERSION="1.0"
 kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org2-peer0.default \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
@@ -150,8 +142,6 @@ kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=adm
 
 ## Approve chaincode Org3MSP
 ```bash
-export SEQUENCE=1
-export VERSION="1.0"
 kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org3-peer0.default \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
@@ -160,8 +150,6 @@ kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=adm
 
 ## Approve chaincode Org4MSP
 ```bash
-export SEQUENCE=1
-export VERSION="1.0"
 kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=admin --peer=org4-peer0.default \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
@@ -191,7 +179,8 @@ kubectl hlf chaincode invoke --config=resources/network.yaml \
 kubectl hlf chaincode invoke --config=resources/network.yaml \
     --user=admin --peer=org1-peer0.default \
     --chaincode=$CHAINCODE_NAME --channel=main \
-    --fcn=GetAllCTI
+    --fcn=GetAllCTI \
+    --args='2000' --args='""'
 ```
 
 

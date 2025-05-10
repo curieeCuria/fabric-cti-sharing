@@ -126,7 +126,7 @@ func (c *CTIChaincode) CreateCTIMetadata(ctx contractapi.TransactionContextInter
 	return ctx.GetStub().PutState(metadataKey, metadataBytes)
 }
 
-func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([]CTIMetadata, error) {
+func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface, pageSize int32, bookmark string) (map[string]interface{}, error) {
 	clientRole, found, err := ctx.GetClientIdentity().GetAttributeValue("role")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client role: %v", err)
@@ -135,13 +135,18 @@ func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([
 		return nil, fmt.Errorf("client role not found")
 	}
 
-	iter, err := ctx.GetStub().GetStateByRange("", "")
+	if clientRole != "HeadOfOperations" && clientRole != "SpecialOperationsUnit" && clientRole != "TacticalUnit" && clientRole != "IntelligenceUnit" {
+		return nil, fmt.Errorf("client role %s is not authorized to access CTI metadata", clientRole)
+	}
+
+	iter, responseMetadata, err := ctx.GetStub().GetStateByRangeWithPagination("", "", pageSize, bookmark)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get state by range: %v", err)
+		return nil, fmt.Errorf("failed to get state by range with pagination: %v", err)
 	}
 	defer iter.Close()
 
 	var metadataList []CTIMetadata
+
 	for iter.HasNext() {
 		queryResponse, err := iter.Next()
 		if err != nil {
@@ -188,11 +193,10 @@ func (c *CTIChaincode) GetAllCTI(ctx contractapi.TransactionContextInterface) ([
 		metadataList = append(metadataList, metadata)
 	}
 
-	if clientRole != "HeadOfOperations" && clientRole != "SpecialOperationsUnit" && clientRole != "TacticalUnit" && clientRole != "IntelligenceUnit" {
-		return nil, fmt.Errorf("client role %s is not authorized to access CTI metadata", clientRole)
-	}
-
-	return metadataList, nil
+	return map[string]interface{}{
+		"metadataList": metadataList,
+		"bookmark":     responseMetadata.Bookmark,
+	}, nil
 }
 
 func (c *CTIChaincode) ReadCTIMetadata(ctx contractapi.TransactionContextInterface, uuid string) (*CTIMetadata, error) {
