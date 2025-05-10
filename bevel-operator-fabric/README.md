@@ -155,7 +155,6 @@ kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware
 
 ## Deploy CA for Org2
 ```bash
-export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
 kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org2-ca \
     --enroll-id=enroll --enroll-pw=enrollpw --hosts=org2-ca.localho.st --istio-port=443
 
@@ -164,7 +163,6 @@ kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware
 
 ## Deploy CA for Org3
 ```bash
-export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
 kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org3-ca \
     --enroll-id=enroll --enroll-pw=enrollpw --hosts=org3-ca.localho.st --istio-port=443
 
@@ -173,7 +171,6 @@ kubectl wait --timeout=180s --for=condition=Running fabriccas.hlf.kungfusoftware
 
 ## Deploy CA for Org4
 ```bash
-export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
 kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org4-ca \
     --enroll-id=enroll --enroll-pw=enrollpw --hosts=org4-ca.localho.st --istio-port=443
 
@@ -1002,7 +999,7 @@ ${ORDERER0_TLS_CERT}
 EOF
 ```
 
-## Join peer to the private channel - Org1MSP
+## Join peer to the private channel - Org4MSP
 ```bash
 export IDENT_8=$(printf "%8s" "")
 export ORDERER0_TLS_CERT=$(kubectl get fabricorderernodes ord-node1 -o=jsonpath='{.status.tlsCert}' | sed -e "s/^/${IDENT_8}/" )

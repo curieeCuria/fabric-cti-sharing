@@ -40,6 +40,9 @@ EOF
 ```bash
 kubectl hlf inspect -c=main --output resources/network.yaml -o Org1MSP -o Org2MSP -o Org3MSP -o Org4MSP -o OrdererMSP
 ```
+```bash
+kubectl hlf inspect -c=private --output resources/privatenetwork.yaml -o Org1MSP -o Org4MSP -o OrdererMSP
+```
 
 
 ```bash
@@ -49,12 +52,17 @@ kubectl hlf utils adduser --userPath=resources/org3msp.yaml --config=resources/n
 kubectl hlf utils adduser --userPath=resources/org4msp.yaml --config=resources/network.yaml --username=admin --mspid=Org4MSP
 ```
 
+```bash
+kubectl hlf utils adduser --userPath=resources/org1msp.yaml --config=resources/privatenetwork.yaml --username=admin --mspid=Org1MSP
+kubectl hlf utils adduser --userPath=resources/org4msp.yaml --config=resources/privatenetwork.yaml --username=admin --mspid=Org4MSP
+```
+
 
 ## Create metadata file
 ```bash
 rm code.tar.gz chaincode.tgz
-export CHAINCODE_NAME=ctitransfer111-2
-export CHAINCODE_LABEL=ctitransfer111-2
+export CHAINCODE_NAME=ctitransfer111
+export CHAINCODE_LABEL=ctitransfer111
 cat << METADATA-EOF > "metadata.json"
 {
     "type": "ccaas",
@@ -102,6 +110,18 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 
 kubectl hlf chaincode install --path=./chaincode.tgz \
     --config=resources/network.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org4-peer1.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/privatenetwork.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org1-peer0.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/privatenetwork.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org1-peer1.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/privatenetwork.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org4-peer0.default
+
+kubectl hlf chaincode install --path=./chaincode.tgz \
+    --config=resources/privatenetwork.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org4-peer1.default
 ```
 
 
@@ -156,12 +176,36 @@ kubectl hlf chaincode approveformyorg --config=resources/network.yaml --user=adm
     --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
 ```
 
+## Approve chaincode Org1MSP - Private
+```bash
+export SEQUENCE=1
+export VERSION="1.0"
+kubectl hlf chaincode approveformyorg --config=resources/privatenetwork.yaml --user=admin --peer=org1-peer0.default \
+    --package-id=$PACKAGE_ID \
+    --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=private
+```
+
+## Approve chaincode Org4MSP - Private
+```bash
+kubectl hlf chaincode approveformyorg --config=resources/privatenetwork.yaml --user=admin --peer=org4-peer0.default \
+    --package-id=$PACKAGE_ID \
+    --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=private
+```
+
 
 ## Commit chaincode
 ```bash
 kubectl hlf chaincode commit --config=resources/network.yaml --user=admin --mspid=Org1MSP \
     --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
     --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=main
+```
+
+```bash
+kubectl hlf chaincode commit --config=resources/privatenetwork.yaml --user=admin --mspid=Org1MSP \
+    --version "$VERSION" --sequence "$SEQUENCE" --name=$CHAINCODE_NAME \
+    --policy="AND('Org1MSP.member', 'Org4MSP.member')" --channel=private
 ```
 
 
@@ -172,7 +216,6 @@ kubectl hlf chaincode invoke --config=resources/network.yaml \
     --chaincode=$CHAINCODE_NAME --channel=main \
     --fcn=initLedger
 ```
-
 
 ## Query all CTI metadata
 ```bash
