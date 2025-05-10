@@ -250,7 +250,6 @@ def get_all_metadata_from_fabric(chaincode_name: str, channel_name: str, config_
     bookmark = ""
 
     while True:
-        print(f"Invoking chaincode with page_size={page_size}, bookmark={bookmark}")
         command = [
             "kubectl", "hlf", "chaincode", "invoke",
             "--config", config_file,
@@ -268,16 +267,13 @@ def get_all_metadata_from_fabric(chaincode_name: str, channel_name: str, config_
             raise RuntimeError(f"Failed to query chaincode: {result.stderr}")
 
         try:
-            print(f"Chaincode response: {result.stdout}")
             response = json.loads(result.stdout)
             metadata_list = response.get("metadataList", [])
             bookmark = response.get("bookmark", "")
 
-            print(f"Retrieved {len(metadata_list)} entries, next bookmark: {bookmark}")
             all_metadata.extend(metadata_list)
 
             if not bookmark:
-                print("No more pages. Exiting loop.")
                 break
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to parse chaincode response: {result.stdout}") from e
