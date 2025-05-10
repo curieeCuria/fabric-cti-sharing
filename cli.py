@@ -25,6 +25,7 @@ CTI_CREATOR_TOKEN = os.getenv("CTI_CREATOR_TOKEN")
 CTI_CONSUMER_TOKEN = os.getenv("CTI_CONSUMER_TOKEN")
 PEERNAME = os.getenv("PEERNAME", "org1-peer0.default")
 CHANNEL = os.getenv("CHANNEL", "main")
+CHAINCODE = os.getenv("CHAINCODE", "ctitransfer111")
 
 def create_cti(args):
     try:
@@ -57,7 +58,7 @@ def create_cti(args):
         # Submit metadata to Fabric
         submit_metadata_to_fabric(
             metadata=metadata,
-            chaincode_name="ctitransfer109",
+            chaincode_name=CHAINCODE,
             channel_name="main",
             config_file="cti/resources/network.yaml",
             user="admin",
@@ -72,7 +73,7 @@ def decrypt_cti(args):
         # Retrieve metadata from Fabric
         metadata = get_metadata_from_fabric(
             uuid=args.uuid,
-            chaincode_name="ctitransfer109",
+            chaincode_name=CHAINCODE,
             channel_name="main",
             config_file="cti/resources/network.yaml",
             user="admin",
@@ -123,7 +124,7 @@ def get_all_cti(args):
     try:
         # Retrieve all CTI metadata from Fabric
         metadata_list = get_all_metadata_from_fabric(
-            chaincode_name="ctitransfer109",
+            chaincode_name=CHAINCODE,
             channel_name="main",
             config_file="cti/resources/network.yaml",
             user="admin",
@@ -155,7 +156,7 @@ def delete_cti(args):
         # Delete CTI metadata from Fabric
         delete_metadata_from_fabric(
             uuid=args.uuid,
-            chaincode_name="ctitransfer109",
+            chaincode_name=CHAINCODE,
             channel_name="main",
             config_file="cti/resources/network.yaml",
             user="admin",
