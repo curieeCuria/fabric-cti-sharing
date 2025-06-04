@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: IPFS_FD_MAX
-              value: "4096"
+              value: "8192"
           ports:
             - name: swarm
               protocol: TCP
@@ -121,4 +121,4 @@ spec:
         # persistentVolumeReclaimPolicy: Retain
         resources:
           requests:
-            storage: 20Gi
+            storage: 50Gi
