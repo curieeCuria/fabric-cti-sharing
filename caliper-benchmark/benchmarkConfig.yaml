@@ -1,20 +1,177 @@
+variables:
+  chaincode: &chaincode ctitransfer111
+
 test:
-  name: CTIChaincode Test
-  description: Testing CTIChaincode operations
+  name: Fabricin ydinsuorituskyky
+  description: CreateCTIMetadata funktion suorituskyvyn testaus vaihtelevilla parametreilla
   workers:
     type: local
     number: 1
   rounds:
-    - label: CreateCTIMetadata
-      description: Test CreateCTIMetadata function
-      txDuration: 10
+    - label: Ydinkuormitustesti_10TPS
+      description: CreateCTIMetadata 10 TPS, 3 minuuttia
+      txDuration: 180
       rateControl:
         type: fixed-rate
         opts:
-          tps: 25
+          tps: 10
       workload:
         module: workload.js
         arguments:
-          chaincodeId: ctitransfer109
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Ydinkuormitustesti_50TPS
+      description: CreateCTIMetadata 50 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Ydinkuormitustesti_100TPS
+      description: CreateCTIMetadata 100 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 10
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Ydinkuormitustesti_200TPS
+      description: CreateCTIMetadata 200 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 200
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Ydinkuormitustesti_500TPS
+      description: CreateCTIMetadata 500 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 500
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Ydinkuormitustesti_1000TPS
+      description: CreateCTIMetadata 1000 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 1000
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Suorituskyvyn_vakaus_1min
+      description: CreateCTIMetadata 50 TPS, 1 minuutti
+      txDuration: 60
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Suorituskyvyn_vakaus_5min
+      description: CreateCTIMetadata 50 TPS, 5 minuuttia
+      txDuration: 300
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Suorituskyvyn_vakaus_10min
+      description: CreateCTIMetadata 50 TPS, 10 minuuttia
+      txDuration: 600
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Suorituskyvyn_vakaus_20min
+      description: CreateCTIMetadata 50 TPS, 20 minuuttia
+      txDuration: 1200
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Suorituskyvyn_vakaus_40min
+      description: CreateCTIMetadata 50 TPS, 40 minuuttia
+      txDuration: 2400
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    
+    - label: Suorituskyvyn_vakaus_60min
+      description: CreateCTIMetadata 50 TPS, 60 minuuttia
+      txDuration: 3600
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload.js
+        arguments:
+          chaincodeId: *chaincode
           channel: main
           function: CreateCTIMetadata
