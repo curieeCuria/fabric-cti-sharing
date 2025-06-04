@@ -1,0 +1,118 @@
+variables:
+  chaincode: &chaincode ctitransfer111
+
+monitors:
+  resource:
+    - module: prometheus
+      options:
+        url: "http://localhost:9090"
+        metrics:
+          include: [org1-ca, org4-ca, ord-node1, ord-node2, ord-node3, ord-node4, org1-peer0, org1-peer1, org4-peer0, org4-peer1]
+          queries:
+            - name: CPU Time (s) (avg)
+              query: sum(rate(process_cpu_seconds_total[1m])) by (job)
+              step: 5
+              label: job
+              statistic: avg
+            - name: CPU Time (s) (max)
+              query: sum(rate(process_cpu_seconds_total[1m])) by (job)
+              step: 5
+              label: job
+              statistic: max
+            - name: Memory (MB) (avg)
+              query: sum(go_memstats_heap_alloc_bytes) by (job)
+              step: 5
+              label: job
+              statistic: avg
+              multiplier: 0.000001
+            - name: Memory (MB) (max)
+              query: sum(go_memstats_heap_alloc_bytes) by (job)
+              step: 5
+              label: job
+              statistic: max
+              multiplier: 0.000001
+test:
+  name: Suorituskyky paasta paahan (IPFS+Vault) 2.1
+  description: CreateCTIMetadata funktion suorituskyvyn testaus vaihtelevilla parametreilla
+  workers:
+    type: local
+    number: 1
+  rounds:
+    - label: Lahettamisen_kuormitustesti_1TPS
+      description: CreateCTIMetadata 1 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 1
+      workload:
+        module: workload_2_1.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    - label: Lahettamisen_kuormitustesti_2TPS
+      description: CreateCTIMetadata 2 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 2
+      workload:
+        module: workload_2_1.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    - label: Lahettamisen_kuormitustesti_5TPS
+      description: CreateCTIMetadata 5 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 5
+      workload:
+        module: workload_2_1.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    - label: Lahettamisen_kuormitustesti_10TPS
+      description: CreateCTIMetadata 10 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 10
+      workload:
+        module: workload_2_1.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    - label: Lahettamisen_kuormitustesti_25TPS
+      description: CreateCTIMetadata 25 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 25
+      workload:
+        module: workload_2_1.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
+    - label: Lahettamisen_kuormitustesti_50TPS
+      description: CreateCTIMetadata 50 TPS, 3 minuuttia
+      txDuration: 180
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 50
+      workload:
+        module: workload_2_1.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: CreateCTIMetadata
