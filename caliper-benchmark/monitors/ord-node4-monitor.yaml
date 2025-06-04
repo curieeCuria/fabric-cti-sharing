@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ord-node4-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: hlf-ordnode
+      release: ord-node4
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: operations
+      interval: 10s
+      scrapeTimeout: 10s
+      scheme: http
