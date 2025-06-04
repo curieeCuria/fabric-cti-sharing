@@ -24,11 +24,11 @@ metadata:
 spec:
   addonComponents:
     grafana:
-      enabled: false
+      enabled: true
     kiali:
       enabled: false
     prometheus:
-      enabled: false
+      enabled: true
     tracing:
       enabled: false
   components:
@@ -79,7 +79,7 @@ EOF
 ```
 
 
-## Configure internal DNS
+## Configure internal DNS (always run on restart)
 ```bash
 kubectl apply -f - <<EOF
 kind: ConfigMap
@@ -116,12 +116,25 @@ data:
 EOF
 ```
 
+## Install Prometheus and Grafana
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
+```bash
+helm repo update
+```
+```bash
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+```
 
 ## Install Hyperledger Fabric Operator
 ```bash
 helm repo add kfs https://kfsoftware.github.io/hlf-helm-charts --force-update
 
-helm install hlf-operator --version=1.11.1 -- kfs/hlf-operator # 1.11.0 didn't work
+helm upgrade --install hlf-operator kfs/hlf-operator \
+  --namespace default \
+  --set serviceMonitor.enabled=true
 ```
 
 
@@ -141,12 +154,13 @@ export ORDERER_VERSION=3.0.0
 
 export CA_IMAGE=hyperledger/fabric-ca
 export CA_VERSION=1.5.13
+
+export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
 ```
 
 
 ## Deploy CA for Org1
 ```bash
-export STORAGE_CLASS=local-path # k3d storage class, "standard" for KinD
 kubectl hlf ca create  --image=$CA_IMAGE --version=$CA_VERSION --storage-class=$STORAGE_CLASS --capacity=1Gi --name=org1-ca \
     --enroll-id=enroll --enroll-pw=enrollpw --hosts=org1-ca.localho.st --istio-port=443
 
@@ -216,12 +230,12 @@ kubectl hlf ca register --name=org4-ca --user=peer --secret=peerpw --type=peer \
 ## Deploy Org1 peers
 ```bash
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org1MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org1-peer0 --ca-name=org1-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org1-peer0 --ca-name=org1-ca.default \
         --hosts=peer0-org1.localho.st --istio-port=443
 
 
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org1MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org1-peer1 --ca-name=org1-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org1-peer1 --ca-name=org1-ca.default \
         --hosts=peer1-org1.localho.st --istio-port=443
 
 
@@ -231,12 +245,12 @@ kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftwa
 ## Deploy Org2 peers
 ```bash
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org2MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org2-peer0 --ca-name=org2-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org2-peer0 --ca-name=org2-ca.default \
         --hosts=peer0-org2.localho.st --istio-port=443
 
 
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org2MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org2-peer1 --ca-name=org2-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org2-peer1 --ca-name=org2-ca.default \
         --hosts=peer1-org2.localho.st --istio-port=443
 
 
@@ -246,12 +260,12 @@ kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftwa
 ## Deploy Org3 peers
 ```bash
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org3MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org3-peer0 --ca-name=org3-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org3-peer0 --ca-name=org3-ca.default \
         --hosts=peer0-org3.localho.st --istio-port=443
 
 
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org3MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org3-peer1 --ca-name=org3-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org3-peer1 --ca-name=org3-ca.default \
         --hosts=peer1-org3.localho.st --istio-port=443
 
 
@@ -261,12 +275,12 @@ kubectl wait --timeout=180s --for=condition=Running fabricpeers.hlf.kungfusoftwa
 ## Deploy Org4 peers
 ```bash
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org4MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org4-peer0 --ca-name=org4-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org4-peer0 --ca-name=org4-ca.default \
         --hosts=peer0-org4.localho.st --istio-port=443
 
 
 kubectl hlf peer create --statedb=leveldb --image=$PEER_IMAGE --version=$PEER_VERSION --storage-class=$STORAGE_CLASS --enroll-id=peer --mspid=Org4MSP \
-        --enroll-pw=peerpw --capacity=5Gi --name=org4-peer1 --ca-name=org4-ca.default \
+        --enroll-pw=peerpw --capacity=10Gi --name=org4-peer1 --ca-name=org4-ca.default \
         --hosts=peer1-org4.localho.st --istio-port=443
 
 
@@ -319,24 +333,24 @@ kubectl hlf ca register --name=ord-ca --user=orderer --secret=ordererpw \
 ```bash
 kubectl hlf ordnode create --image=$ORDERER_IMAGE --version=$ORDERER_VERSION \
     --storage-class=$STORAGE_CLASS --enroll-id=orderer --mspid=OrdererMSP \
-    --enroll-pw=ordererpw --capacity=2Gi --name=ord-node1 --ca-name=ord-ca.default \
+    --enroll-pw=ordererpw --capacity=4Gi --name=ord-node1 --ca-name=ord-ca.default \
     --hosts=orderer0-ord.localho.st --admin-hosts=admin-orderer0-ord.localho.st --istio-port=443
 
 
 kubectl hlf ordnode create --image=$ORDERER_IMAGE --version=$ORDERER_VERSION \
     --storage-class=$STORAGE_CLASS --enroll-id=orderer --mspid=OrdererMSP \
-    --enroll-pw=ordererpw --capacity=2Gi --name=ord-node2 --ca-name=ord-ca.default \
+    --enroll-pw=ordererpw --capacity=4Gi --name=ord-node2 --ca-name=ord-ca.default \
     --hosts=orderer1-ord.localho.st --admin-hosts=admin-orderer1-ord.localho.st --istio-port=443
 
 kubectl hlf ordnode create --image=$ORDERER_IMAGE --version=$ORDERER_VERSION \
     --storage-class=$STORAGE_CLASS --enroll-id=orderer --mspid=OrdererMSP \
-    --enroll-pw=ordererpw --capacity=2Gi --name=ord-node3 --ca-name=ord-ca.default \
+    --enroll-pw=ordererpw --capacity=4Gi --name=ord-node3 --ca-name=ord-ca.default \
     --hosts=orderer2-ord.localho.st --admin-hosts=admin-orderer2-ord.localho.st --istio-port=443
 
 
 kubectl hlf ordnode create --image=$ORDERER_IMAGE --version=$ORDERER_VERSION \
     --storage-class=$STORAGE_CLASS --enroll-id=orderer --mspid=OrdererMSP \
-    --enroll-pw=ordererpw --capacity=2Gi --name=ord-node4 --ca-name=ord-ca.default \
+    --enroll-pw=ordererpw --capacity=4Gi --name=ord-node4 --ca-name=ord-ca.default \
     --hosts=orderer3-ord.localho.st --admin-hosts=admin-orderer3-ord.localho.st --istio-port=443
 
 # 3/4 for BFT
@@ -1032,6 +1046,54 @@ ${ORDERER0_TLS_CERT}
     - name: org4-peer1
       namespace: default
 EOF
+```
+<br>
+
+# Setting up monitoring
+
+## Get hlf-operator values
+```bash
+helm get values hlf-operator --all
+```
+
+## Edit CAs
+```bash
+kubectl edit fabriccas org1-ca
+```
+
+## Edit peers
+```bash
+kubectl edit fabricpeers org1-peer0
+```
+
+## Edit orderers
+```bash
+kubectl edit fabricorderernodes ord-node1
+```
+
+The CRDs for the orderer, peer, and certificate authority have an optional parameter to create the service monitors to scrape the metrics automatically if Prometheus Operator is installed on the cluster.
+
+```
+  serviceMonitor:
+    enabled: true
+    interval: 10s
+    labels: {}
+    sampleLimit: 0
+    scrapeTimeout: 10s
+```
+
+## Deploy service monitors
+```bash
+kubectl apply -f ../caliper-benchmark/monitors/ord-node1-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/ord-node2-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/ord-node3-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/ord-node4-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/org1-ca-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/org4-ca-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/org1-peer0-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/org1-peer1-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/org4-peer0-monitor.yaml
+kubectl apply -f ../caliper-benchmark/monitors/org4-peer1-monitor.yaml
 ```
 
 <!--
