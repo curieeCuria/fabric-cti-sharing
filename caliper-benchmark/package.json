@@ -1,10 +1,13 @@
 {
     "scripts": {
-        "start": "caliper launch manager --caliper-bind-sut fabric:fabric-gateway --caliper-workspace . --caliper-benchconfig benchmarkConfig.yaml --caliper-networkconfig networkConfig.yaml"
+        "start": "caliper launch manager --caliper-bind-sut fabric:fabric-gateway --caliper-workspace . --caliper-benchconfig test_4_1.yaml --caliper-networkconfig networkConfig.yaml"
     },
     "dependencies": {
         "@grpc/grpc-js": "^1.10.3",
-        "@hyperledger/fabric-gateway": "^1.5.0"
+        "@hyperledger/fabric-gateway": "^1.5.0",
+        "axios": "^1.9.0",
+        "form-data": "^4.0.2",
+        "node-vault": "^0.10.2"
     },
     "devDependencies": {
         "@hyperledger/caliper-cli": "^0.6.0"
