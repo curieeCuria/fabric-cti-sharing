@@ -1,10 +1,38 @@
 ## Install IPFS-key (Linux amd64)
 ```bash
 wget https://github.com/LasseRapo/ipfs-key/releases/download/v1.0/ipfs-key_1.0_linux_amd64.tar.gz
-tar -xzf ipfs-key_1.0.0_linux_amd64.tar.gz
+tar -xzf ipfs-key_1.0_linux_amd64.tar.gz
 sudo mv ipfs-key_linux_amd64 /usr/local/bin/ipfs-key
 ```
 Other platform binaries: https://github.com/LasseRapo/ipfs-key/releases
+
+## Create `secret.yaml` with a script
+You can use the following bash script to generate a `secret.yaml` file:
+
+```bash
+#!/bin/bash
+
+cat <<EOF > secret.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+data:
+  bootstrap-peer-id: <INSERT_ID_FOR_GENERATED_KEY>
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-config
+type: Opaque
+data:
+  cluster-secret: <INSERT_SECRET>
+  bootstrap-peer-priv-key: <INSERT_KEY>
+EOF
+
+echo "secret.yaml created."
+```
 
 ## Generate cluster secret
 To generate the [cluster_secret](secret.yaml#L15) value in [secret.yaml](secret.yaml), run the following and insert the output to [cluster_secret](secret.yaml#L15):
