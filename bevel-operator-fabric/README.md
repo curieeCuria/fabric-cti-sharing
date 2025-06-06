@@ -6,7 +6,7 @@ k3d cluster create  -p "80:30949@agent:0" -p "443:30950@agent:0" --agents 2 k8s-
 ```
 
 
-## Deploy istio
+## Deploy istio (use version 1.23.3, newer versions don't support operator)
 ```bash
 kubectl create namespace istio-system
 
@@ -368,7 +368,7 @@ openssl s_client -connect orderer0-ord.localho.st:443
 ```
 
 
-## Register and enroll OrdererMSP identity
+## Register and enroll OrdererMSP identity (create /resources folder under /cti)
 ```bash
 # register
 kubectl hlf ca register --name=ord-ca --user=admin --secret=adminpw \
