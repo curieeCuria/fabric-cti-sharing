@@ -37,6 +37,8 @@ export CHANNEL="main"
 
 ## Sending CTI
 
+![create_gif](https://github.com/LasseRapo/fabric-cti-sharing/blob/main/images/FCTIS_create.gif)
+
 To create and submit CTI metadata:
 
 ```bash
@@ -51,6 +53,8 @@ python cli.py create cti/sample_cti.json "Malicious URL" "HeadOfOperations,Tacti
 
 ## Getting All CTI metadata
 
+![getall_gif](https://github.com/LasseRapo/fabric-cti-sharing/blob/main/images/FCTIS_getall.gif)
+
 To retrieve and display all CTI metadata:
 
 ```bash
@@ -60,6 +64,8 @@ python cli.py getall
 This command retrieves all CTI metadata visible to the organization from the Fabric ledger and displays it in a formatted way.
 
 ## Decrypting CTI
+
+![decrypt_gif](https://github.com/LasseRapo/fabric-cti-sharing/blob/main/images/FCTIS_decrypt.gif)
 
 To query and decrypt CTI using its UUID:
 
