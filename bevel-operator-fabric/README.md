@@ -134,7 +134,8 @@ helm repo add kfs https://kfsoftware.github.io/hlf-helm-charts --force-update
 
 helm upgrade --install hlf-operator kfs/hlf-operator \
   --namespace default \
-  --set serviceMonitor.enabled=true
+  --set serviceMonitor.enabled=true \
+  --version 1.11.1
 ```
 
 
@@ -638,7 +639,7 @@ ${ORDERER2_TLS_CERT}
     - host: ord-node4
       port: 7050
       tlsCert: |-
-${ORDERER2_TLS_CERT}
+${ORDERER3_TLS_CERT}
 
 EOF
 ```
@@ -1050,7 +1051,7 @@ EOF
 <br>
 
 # Setting up monitoring
-
+<!--
 ## Get hlf-operator values
 ```bash
 helm get values hlf-operator --all
@@ -1081,7 +1082,7 @@ The CRDs for the orderer, peer, and certificate authority have an optional param
     sampleLimit: 0
     scrapeTimeout: 10s
 ```
-
+-->
 ## Deploy service monitors
 ```bash
 kubectl apply -f ../caliper-benchmark/monitors/ord-node1-monitor.yaml
