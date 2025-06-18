@@ -23,6 +23,11 @@ kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 909
 ```
 Leave this command running in a separate terminal while benchmarking.
 
+## Extracting keys
+```bash
+python extract_keys.py
+```
+
 ## Running the Benchmark
 
 Start the Caliper benchmark:
