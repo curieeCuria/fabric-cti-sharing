@@ -1,4 +1,4 @@
-# Fabric CTI sharing
+# Fabric CTI Sharing
 
 This project provides a PoC system for securely sharing Cyber Threat Intelligence (CTI) data between organizations using Hyperledger Fabric, IPFS, and HashiCorp Vault. The system ensures secure storage, encryption, and controlled access to CTI data, enabling organizations to collaborate effectively while maintaining data confidentiality and integrity.
 
@@ -13,7 +13,7 @@ The `cli.py` script serves as the command-line interface for interacting with th
 
 The `cli.py` script provides commands for creating and decrypting CTI.
 
-Refer to the [Organization Access List](cti/README.md#organization-access-list) to see the permissions and actions available to each organization.
+Refer to the [Organization Access List](cti/README.md#organization-access-list) for permissions and actions available to each organization.
 
 ## Setting Environment Variables
 
@@ -39,7 +39,7 @@ export CHANNEL="main"
 
 ![create_gif](https://github.com/LasseRapo/fabric-cti-sharing/blob/main/images/FCTIS_create.gif)
 
-To create and submit CTI metadata:
+Create and submit CTI metadata:
 
 ```bash
 python cli.py create <filepath> <description> <roles>
@@ -55,7 +55,7 @@ python cli.py create cti/sample_cti.json "Malicious URL" "HeadOfOperations,Tacti
 
 ![getall_gif](https://github.com/LasseRapo/fabric-cti-sharing/blob/main/images/FCTIS_getall.gif)
 
-To retrieve and display all CTI metadata:
+Retrieve and display all CTI metadata:
 
 ```bash
 python cli.py getall
@@ -67,7 +67,7 @@ This command retrieves all CTI metadata visible to the organization from the Fab
 
 ![decrypt_gif](https://github.com/LasseRapo/fabric-cti-sharing/blob/main/images/FCTIS_decrypt.gif)
 
-To query and decrypt CTI using its UUID:
+Query and decrypt CTI by UUID:
 
 ```bash
 python cli.py decrypt <uuid> <output (optional)>
@@ -83,11 +83,52 @@ python cli.py decrypt 9c01dc9d-cc3f-4b9a-8240-ac8e5b12e431 decrypted_data.json
 
 ## Deleting CTI metadata
 
-To delete CTI metadata (HeadOfOperations only):
+Delete CTI metadata (HeadOfOperations only):
 
 ```bash
 python cli.py delete <uuid>
 ```
+---
+<br>
+
+# Deploying the System
+
+Follow these steps to deploy the full Fabric CTI Sharing system, including the blockchain network, Vault, and IPFS:
+
+### 1. Deploy the Hyperledger Fabric Network
+
+The Fabric network is deployed using the [bevel-operator-fabric](bevel-operator-fabric/README.md) project, which uses Kubernetes and the HLF Operator.
+
+- See [bevel-operator-fabric/README.md](bevel-operator-fabric/README.md) for detailed step-by-step deployment instructions.
+- The steps include:
+  - Creating a Kubernetes cluster
+  - Deploying Istio and configuring internal DNS
+  - Installing the HLF Operator and Kubectl plugin
+  - Deploying Certificate Authorities, Peers, and Orderers for each organization
+  - Creating channels and joining peers
+
+For chaincode deployment and approval, see [cti/CHAINCODE_USAGE.md](cti/CHAINCODE_USAGE.md). The chaincode source is in [cti/ctiTransfer.go](cti/ctiTransfer.go) and also available on [DockerHub](https://hub.docker.com/repository/docker/betoni/cti-transfer/general).
+
+### 2. Deploy HashiCorp Vault
+
+See [vault/README.md](vault/README.md) for Vault deployment and initialization instructions.
+
+### 3. Deploy IPFS
+
+See [ipfs/README.md](ipfs/README.md) for IPFS deployment instructions.
+
+### 4. Install Python Dependenices
+
+See [cti/README.md](cti/README.md) for instructions on setting up a Python virtual environment and installing dependencies.
+
+### 5. Set environment variables
+
+Set the correct IP addresses for the services and Vault tokens as described above. You can check service IPs using:
+```bash
+kubectl get svc
+```
+
+---
 
 ## License
 
