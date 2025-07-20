@@ -54,9 +54,9 @@ import hvac
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
-IPFS_ADD_URL = os.getenv("IPFS_ADD_URL", "http://172.20.0.2:9094/add")
-IPFS_RETRIEVE_URL = os.getenv("IPFS_RETRIEVE_URL", "http://172.20.0.2:8080/ipfs")
-VAULT_ADDR = os.getenv("VAULT_ADDR", "http://172.20.0.2:8200")
+IPFS_ADD_URL = os.getenv("IPFS_ADD_URL", "http://172.18.0.2:9094/add")
+IPFS_RETRIEVE_URL = os.getenv("IPFS_RETRIEVE_URL", "http://172.18.0.2:8080/ipfs")
+VAULT_ADDR = os.getenv("VAULT_ADDR", "http://172.18.0.3:8200")
 
 def calculate_file_sha256(filepath: str) -> str:
     """
@@ -223,7 +223,7 @@ def get_metadata_from_fabric(uuid: str, chaincode_name: str, channel_name: str, 
     Retrieve CTI metadata from the Hyperledger Fabric ledger by UUID.
     """
     command = [
-        "kubectl", "hlf", "chaincode", "invoke",
+        "kubectl", "hlf", "chaincode", "query",
         "--config", config_file,
         "--user", user,
         "--peer", peer,
@@ -251,7 +251,7 @@ def get_all_metadata_from_fabric(chaincode_name: str, channel_name: str, config_
 
     while True:
         command = [
-            "kubectl", "hlf", "chaincode", "invoke",
+            "kubectl", "hlf", "chaincode", "query",
             "--config", config_file,
             "--user", user,
             "--peer", peer,
