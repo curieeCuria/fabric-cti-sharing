@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "start": "caliper launch manager --caliper-bind-sut fabric:fabric-gateway --caliper-workspace . --caliper-benchconfig test_4_1.yaml --caliper-networkconfig networkConfig.yaml"
+        "start": "caliper launch manager --caliper-bind-sut fabric:fabric-gateway --caliper-workspace . --caliper-benchconfig test_4_2.yaml --caliper-networkconfig networkConfig.yaml --caliper-fabric-gateway-querystrategy msp_round_robin"
     },
     "dependencies": {
         "@grpc/grpc-js": "^1.10.3",
