@@ -1,6 +1,7 @@
 'use strict';
 
 const { WorkloadModuleBase } = require('@hyperledger/caliper-core');
+const crypto = require('crypto');
 
 class CreateCTIMetadataWorkload extends WorkloadModuleBase {
     constructor() {
@@ -22,7 +23,7 @@ class CreateCTIMetadataWorkload extends WorkloadModuleBase {
             Description: `Test Metadata ${this.txIndex}`,
             Timestamp: new Date().toISOString(),
             SenderIdentity: 'HeadOfOperations',
-            CID: `CID${this.txIndex}`,
+            CID: `Qm${crypto.randomBytes(32).toString('hex')}`,
             VaultKey: `vaultKey${this.txIndex}`,
             SHA256Hash: `hash${this.txIndex}`,
             AccessList: ['HeadOfOperations']

@@ -2,7 +2,7 @@
 
 const { WorkloadModuleBase } = require('@hyperledger/caliper-core');
 
-const CTI_UUID = 'cf233107-b2e0-41bc-839d-08c8c277301e';
+const CTI_UUID = '';
 
 class ReadCTIMetadataWorkload extends WorkloadModuleBase {
     constructor() {
@@ -19,7 +19,8 @@ class ReadCTIMetadataWorkload extends WorkloadModuleBase {
             contractFunction: 'ReadCTIMetadata',
             contractArguments: [CTI_UUID],
             channel: this.roundArguments.channel,
-            timeout: 30
+            timeout: 30,
+            readOnly: true
         };
 
         await this.sutAdapter.sendRequests(request);

@@ -51,22 +51,22 @@ monitors:
               statistic: max
 
 test:
-  name: Suorituskyky ilman Vaultia (IPFS+Fabric) 3.1
-  description: CreateCTIMetadata funktion suorituskyvyn testaus vaihtelevilla parametreilla ilman salausta (IPFS+Fabric)
+  name: Suorituskyky ilman IPFS:aa (Vault+Fabric) 3.4
+  description: ReadCTIMetadata funktion suorituskyvyn testaus vaihtelevilla parametreilla ilman IPFS:aa (Vault+Fabric)
   workers:
     type: local
-    number: 1
+    number: 2
   rounds:
-    - label: IPFS:n_vaikutus_25KB
-      description: CreateCTIMetadata 200 TPS, 5 minuuttia
+    - label: Vaultin_vaikutus_25KB
+      description: ReadCTIMetadata 1000 TPS, 5 minuuttia
       txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 200
+          tps: 1000
       workload:
-        module: workload_4_1.js
+        module: workload_4_4.js
         arguments:
           chaincodeId: *chaincode
           channel: main
-          function: CreateCTIMetadata
+          function: ReadCTIMetadata

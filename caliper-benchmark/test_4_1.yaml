@@ -7,113 +7,113 @@ monitors:
       options:
         url: "http://localhost:9090"
         metrics:
-          include: [org1-ca, org4-ca, ord-node1, ord-node2, ord-node3, ord-node4, org1-peer0, org1-peer1, org4-peer0, org4-peer1]
+          include: [ord-node1, ord-node2, ord-node3, ord-node4, org1-peer0, org1-peer1, org4-peer0, org4-peer1]
           queries:
-            - name: CPU Time (s) (avg)
-              query: sum(rate(process_cpu_seconds_total[1m])) by (job)
+            - name: CPU (%) (avg)
+              query: sum(rate(process_cpu_seconds_total[1m])) by (job) / 28 * 100
               step: 5
               label: job
               statistic: avg
-            - name: CPU Time (s) (max)
-              query: sum(rate(process_cpu_seconds_total[1m])) by (job)
+            - name: CPU (%) (max)
+              query: sum(rate(process_cpu_seconds_total[1m])) by (job) / 28 * 100
               step: 5
               label: job
               statistic: max
             - name: Memory (MB) (avg)
-              query: sum(go_memstats_heap_alloc_bytes) by (job)
+              query: sum(container_memory_working_set_bytes{name=~".+"}) by (pod) / 1024 / 1024
               step: 5
-              label: job
+              label: pod
               statistic: avg
-              multiplier: 0.000001
             - name: Memory (MB) (max)
-              query: sum(go_memstats_heap_alloc_bytes) by (job)
+              query: sum(container_memory_working_set_bytes{name=~".+"}) by (pod) / 1024 / 1024
               step: 5
-              label: job
+              label: pod
               statistic: max
-              multiplier: 0.000001
+            - name: Disk Write (MB/s) (avg)
+              query: sum(rate(container_fs_writes_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: avg
+            - name: Disk Write (MB/s) (max)
+              query: sum(rate(container_fs_writes_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: max
+            - name: Disk Read (MB/s) (avg)
+              query: sum(rate(container_fs_reads_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: avg
+            - name: Disk Read (MB/s) (max)
+              query: sum(rate(container_fs_reads_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: max
 
 test:
-  name: Suorituskyky paasta paahan (IPFS+Fabric) 4.1
-  description: CreateCTIMetadata funktion suorituskyvyn testaus vaihtelevilla parametreilla ilman salausta (IPFS+Fabric)
+  name: Sekatyon kuormitustesti 4.1
+  description: Create/ReadCTIMetadata vaihtelevilla suhteilla, IPFS+Vault+Fabric
   workers:
     type: local
     number: 1
   rounds:
-    - label: IPFS:n_vaikutus_200TPS
-      description: CreateCTIMetadata 200 TPS, 3 minuuttia
-      txDuration: 180
+    - label: "5_95"
+      description: 5% create, 95% read, 200 TPS, 5 min
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
           tps: 200
       workload:
-        module: workload_4_1.js
+        module: workload_5_1.js
         arguments:
           chaincodeId: *chaincode
           channel: main
-          function: CreateCTIMetadata
-    - label: IPFS:n_vaikutus_100TPS
-      description: CreateCTIMetadata 100 TPS, 3 minuuttia
-      txDuration: 180
+    - label: "25_75"
+      description: 25% create, 75% read, 200 TPS, 5 min
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 100
+          tps: 200
       workload:
-        module: workload_4_1.js
+        module: workload_5_1.js
         arguments:
           chaincodeId: *chaincode
           channel: main
-          function: CreateCTIMetadata
-    - label: IPFS:n_vaikutus_50TPS
-      description: CreateCTIMetadata 50 TPS, 3 minuuttia
-      txDuration: 180
+    - label: "50_50"
+      description: 50% create, 50% read, 200 TPS, 5 min
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 50
+          tps: 200
       workload:
-        module: workload_4_1.js
+        module: workload_5_1.js
         arguments:
           chaincodeId: *chaincode
           channel: main
-          function: CreateCTIMetadata
-    - label: IPFS:n_vaikutus_10TPS
-      description: CreateCTIMetadata 25 TPS, 3 minuuttia
-      txDuration: 180
+    - label: "75_25"
+      description: 75% create, 25% read, 200 TPS, 5 min
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 25
+          tps: 200
       workload:
-        module: workload_4_1.js
+        module: workload_5_1.js
         arguments:
           chaincodeId: *chaincode
           channel: main
-          function: CreateCTIMetadata
-    - label: IPFS:n_vaikutus_25TPS
-      description: CreateCTIMetadata 10 TPS, 3 minuuttia
-      txDuration: 180
+    - label: "95_5"
+      description: 95% create, 5% read, 200 TPS, 5 min
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 10
+          tps: 200
       workload:
-        module: workload_4_1.js
+        module: workload_5_1.js
         arguments:
           chaincodeId: *chaincode
           channel: main
-          function: CreateCTIMetadata
-    - label: IPFS:n_vaikutus_50TPS
-      description: CreateCTIMetadata 5 TPS, 3 minuuttia
-      txDuration: 180
-      rateControl:
-        type: fixed-rate
-        opts:
-          tps: 5
-      workload:
-        module: workload_4_1.js
-        arguments:
-          chaincodeId: *chaincode
-          channel: main
-          function: CreateCTIMetadata

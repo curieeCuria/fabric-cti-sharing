@@ -7,30 +7,48 @@ monitors:
       options:
         url: "http://localhost:9090"
         metrics:
-          include: [org1-ca, org4-ca, ord-node1, ord-node2, ord-node3, ord-node4, org1-peer0, org1-peer1, org4-peer0, org4-peer1]
+          include: [ord-node1, ord-node2, ord-node3, ord-node4, org1-peer0, org1-peer1, org4-peer0, org4-peer1]
           queries:
-            - name: CPU Time (s) (avg)
-              query: sum(rate(process_cpu_seconds_total[1m])) by (job)
+            - name: CPU (%) (avg)
+              query: sum(rate(process_cpu_seconds_total[1m])) by (job) / 28 * 100
               step: 5
               label: job
               statistic: avg
-            - name: CPU Time (s) (max)
-              query: sum(rate(process_cpu_seconds_total[1m])) by (job)
+            - name: CPU (%) (max)
+              query: sum(rate(process_cpu_seconds_total[1m])) by (job) / 28 * 100
               step: 5
               label: job
               statistic: max
             - name: Memory (MB) (avg)
-              query: sum(go_memstats_heap_alloc_bytes) by (job)
+              query: sum(container_memory_working_set_bytes{name=~".+"}) by (pod) / 1024 / 1024
               step: 5
-              label: job
+              label: pod
               statistic: avg
-              multiplier: 0.000001
             - name: Memory (MB) (max)
-              query: sum(go_memstats_heap_alloc_bytes) by (job)
+              query: sum(container_memory_working_set_bytes{name=~".+"}) by (pod) / 1024 / 1024
               step: 5
-              label: job
+              label: pod
               statistic: max
-              multiplier: 0.000001
+            - name: Disk Write (MB/s) (avg)
+              query: sum(rate(container_fs_writes_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: avg
+            - name: Disk Write (MB/s) (max)
+              query: sum(rate(container_fs_writes_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: max
+            - name: Disk Read (MB/s) (avg)
+              query: sum(rate(container_fs_reads_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: avg
+            - name: Disk Read (MB/s) (max)
+              query: sum(rate(container_fs_reads_bytes_total[1m])) by (pod) / 1024 / 1024
+              step: 5
+              label: pod
+              statistic: max
 test:
   name: Suorituskyky paasta paahan (IPFS+Vault) 2.2
   description: ReadCTIMetadata funktion suorituskyvyn testaus vaihtelevilla parametreilla
@@ -38,48 +56,9 @@ test:
     type: local
     number: 1
   rounds:
-    - label: Vastaanottamisen_kuormitustesti_1TPS
-      description: ReadCTIMetadata 1 TPS, 3 minuuttia
-      txDuration: 180
-      rateControl:
-        type: fixed-rate
-        opts:
-          tps: 1
-      workload:
-        module: workload_2_2.js
-        arguments:
-          chaincodeId: *chaincode
-          channel: main
-          function: ReadCTIMetadata
-    - label: Vastaanottamisen_kuormitustesti_2TPS
-      description: ReadCTIMetadata 2 TPS, 3 minuuttia
-      txDuration: 180
-      rateControl:
-        type: fixed-rate
-        opts:
-          tps: 2
-      workload:
-        module: workload_2_2.js
-        arguments:
-          chaincodeId: *chaincode
-          channel: main
-          function: ReadCTIMetadata
-    - label: Vastaanottamisen_kuormitustesti_5TPS
-      description: ReadCTIMetadata 5 TPS, 3 minuuttia
-      txDuration: 180
-      rateControl:
-        type: fixed-rate
-        opts:
-          tps: 5
-      workload:
-        module: workload_2_2.js
-        arguments:
-          chaincodeId: *chaincode
-          channel: main
-          function: ReadCTIMetadata
     - label: Vastaanottamisen_kuormitustesti_10TPS
-      description: ReadCTIMetadata 10 TPS, 3 minuuttia
-      txDuration: 180
+      description: ReadCTIMetadata 10 TPS, 5 minuuttia
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
@@ -90,26 +69,65 @@ test:
           chaincodeId: *chaincode
           channel: main
           function: ReadCTIMetadata
-    - label: Vastaanottamisen_kuormitustesti_25TPS
-      description: ReadCTIMetadata 25 TPS, 3 minuuttia
-      txDuration: 180
+    - label: Vastaanottamisen_kuormitustesti_50TPS
+      description: ReadCTIMetadata 50 TPS, 5 minuuttia
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 25
+          tps: 50
       workload:
         module: workload_2_2.js
         arguments:
           chaincodeId: *chaincode
           channel: main
           function: ReadCTIMetadata
-    - label: Vastaanottamisen_kuormitustesti_50TPS
-      description: ReadCTIMetadata 50 TPS, 3 minuuttia
-      txDuration: 180
+    - label: Vastaanottamisen_kuormitustesti_100TPS
+      description: ReadCTIMetadata 100 TPS, 5 minuuttia
+      txDuration: 300
       rateControl:
         type: fixed-rate
         opts:
-          tps: 50
+          tps: 100
+      workload:
+        module: workload_2_2.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: ReadCTIMetadata
+    - label: Vastaanottamisen_kuormitustesti_200TPS
+      description: ReadCTIMetadata 200 TPS, 5 minuuttia
+      txDuration: 300
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 200
+      workload:
+        module: workload_2_2.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: ReadCTIMetadata
+    - label: Vastaanottamisen_kuormitustesti_500TPS
+      description: ReadCTIMetadata 500 TPS, 5 minuuttia
+      txDuration: 300
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 500
+      workload:
+        module: workload_2_2.js
+        arguments:
+          chaincodeId: *chaincode
+          channel: main
+          function: ReadCTIMetadata
+    - label: Vastaanottamisen_kuormitustesti_1000TPS
+      description: ReadCTIMetadata 1000 TPS, 5 minuuttia
+      txDuration: 300
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 1000
       workload:
         module: workload_2_2.js
         arguments:
