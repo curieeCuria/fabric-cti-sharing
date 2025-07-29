@@ -1,18 +1,31 @@
-import React, { useContext, useState } from 'react';
-import { BundleContext } from '../contexts/BundleContext';
+import React, { useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { Dialog, DialogTitle, DialogContent, Typography, List, ListItem, ListItemText, Select, MenuItem, Box, Button } from '@mui/material';
 
 const GraphView = () => {
-  const { bundle } = useContext(BundleContext);
+  const API_BASE = process.env.REACT_APP_API_URL || '';
+  const [objects, setObjects] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [filters, setFilters] = useState({ nodeType: '', relationshipType: '' });
 
-  const uniqueNodeTypes = [...new Set(bundle.objects.map(obj => obj.type).filter(type => type !== 'relationship'))];
-  const uniqueRelationshipTypes = [...new Set(bundle.objects.filter(obj => obj.type === 'relationship').map(rel => rel.relationship_type))];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(API_BASE + '/api/objects');
+        const data = await res.json();
+        setObjects(data);
+      } catch (err) {
+        console.error('Failed to load objects', err);
+      }
+    };
+    load();
+  }, [API_BASE]);
+
+  const uniqueNodeTypes = [...new Set(objects.map(obj => obj.type).filter(type => type !== 'relationship'))];
+  const uniqueRelationshipTypes = [...new Set(objects.filter(obj => obj.type === 'relationship').map(rel => rel.relationship_type))];
 
   // Filter nodes based on nodeType
-  const filteredNodes = bundle.objects
+  const filteredNodes = objects
     .filter(obj => obj.type !== 'relationship' && (!filters.nodeType || obj.type === filters.nodeType))
     .map(obj => ({
       id: obj.id,
@@ -22,7 +35,7 @@ const GraphView = () => {
 
   // Filter relationships where both source and target nodes exist in filteredNodes
   const validNodeIds = new Set(filteredNodes.map(node => node.id));
-  const filteredLinks = bundle.objects
+  const filteredLinks = objects
     .filter(o => o.type === 'relationship' && (!filters.relationshipType || o.relationship_type === filters.relationshipType))
     .filter(rel => validNodeIds.has(rel.source_ref) && validNodeIds.has(rel.target_ref))
     .map(rel => ({
@@ -32,7 +45,7 @@ const GraphView = () => {
     }));
 
   const handleNodeClick = (node) => {
-    const obj = bundle.objects.find(o => o.id === node.id);
+    const obj = objects.find(o => o.id === node.id);
     setSelectedNode(obj);
   };
 

@@ -1,0 +1,7 @@
+# Placeholder connection profile
+name: sample-network
+version: 1.0.0
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers: []

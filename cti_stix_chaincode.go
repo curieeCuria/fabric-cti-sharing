@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	cid "github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -109,6 +110,25 @@ func (c *CTIStixContract) assetExists(ctx contractapi.TransactionContextInterfac
 	return data != nil, nil
 }
 
+// authorizeRole ensures the invoker has the required role attribute
+func (c *CTIStixContract) authorizeRole(ctx contractapi.TransactionContextInterface, required string) error {
+	clientID, err := cid.New(ctx.GetStub())
+	if err != nil {
+		return fmt.Errorf("failed to get client identity: %v", err)
+	}
+       role, found, err := clientID.GetAttributeValue("role")
+       if err != nil {
+               return fmt.Errorf("failed to read role attribute: %v", err)
+       }
+       if !found {
+               return fmt.Errorf("access denied: role %s required", required)
+       }
+       if role != required && role != "HeadOfOperation" {
+               return fmt.Errorf("access denied: role %s required", required)
+       }
+       return nil
+}
+
 // getAllAssets returns all JSON objects stored in world state (unfiltered)
 func (c *CTIStixContract) getAllAssets(ctx contractapi.TransactionContextInterface) ([]json.RawMessage, error) {
 	iterator, err := ctx.GetStub().GetStateByRange("", "")
@@ -137,6 +157,9 @@ func (c *CTIStixContract) CreateIndicator(
 	ctx contractapi.TransactionContextInterface,
 	jsonStr string,
 ) error {
+	if err := c.authorizeRole(ctx, "creator"); err != nil {
+		return err
+	}
 	// jsonStr is expected to be a JSON string representing the full Indicator object
 	var ind Indicator
 	if err := json.Unmarshal([]byte(jsonStr), &ind); err != nil {
@@ -170,6 +193,9 @@ func (c *CTIStixContract) ReadIndicator(
 	ctx contractapi.TransactionContextInterface,
 	id string,
 ) (*Indicator, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	bytes, err := c.getAsset(ctx, id)
 	if err != nil {
 		return nil, err
@@ -188,6 +214,9 @@ func (c *CTIStixContract) ReadIndicator(
 
 // CreateRelationship writes a new STIX Relationship into world state
 func (c *CTIStixContract) CreateRelationship(ctx contractapi.TransactionContextInterface, jsonStr string) error {
+	if err := c.authorizeRole(ctx, "creator"); err != nil {
+		return err
+	}
 	var rel Relationship
 	if err := json.Unmarshal([]byte(jsonStr), &rel); err != nil {
 		return fmt.Errorf("failed to parse relationship JSON: %v", err)
@@ -217,6 +246,9 @@ func (c *CTIStixContract) ReadRelationship(
 	ctx contractapi.TransactionContextInterface,
 	id string,
 ) (*Relationship, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	bytes, err := c.getAsset(ctx, id)
 	if err != nil {
 		return nil, err
@@ -235,6 +267,9 @@ func (c *CTIStixContract) ReadRelationship(
 
 // CreateSighting writes a new STIX Sighting into world state
 func (c *CTIStixContract) CreateSighting(ctx contractapi.TransactionContextInterface, jsonStr string) error {
+	if err := c.authorizeRole(ctx, "creator"); err != nil {
+		return err
+	}
 	var sit Sighting
 	if err := json.Unmarshal([]byte(jsonStr), &sit); err != nil {
 		return fmt.Errorf("failed to parse sighting JSON: %v", err)
@@ -264,6 +299,9 @@ func (c *CTIStixContract) ReadSighting(
 	ctx contractapi.TransactionContextInterface,
 	id string,
 ) (*Sighting, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	bytes, err := c.getAsset(ctx, id)
 	if err != nil {
 		return nil, err
@@ -282,6 +320,9 @@ func (c *CTIStixContract) ReadSighting(
 
 // CreateBundle writes a new STIX Bundle into world state
 func (c *CTIStixContract) CreateBundle(ctx contractapi.TransactionContextInterface, jsonStr string) error {
+	if err := c.authorizeRole(ctx, "creator"); err != nil {
+		return err
+	}
 	var b Bundle
 	if err := json.Unmarshal([]byte(jsonStr), &b); err != nil {
 		return fmt.Errorf("failed to parse bundle JSON: %v", err)
@@ -312,6 +353,9 @@ func (c *CTIStixContract) ReadBundle(
 	ctx contractapi.TransactionContextInterface,
 	id string,
 ) (*Bundle, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	bytes, err := c.getAsset(ctx, id)
 	if err != nil {
 		return nil, err
@@ -333,6 +377,9 @@ func (c *CTIStixContract) ReadBundle(
 func (c *CTIStixContract) GetAllObjects(
 	ctx contractapi.TransactionContextInterface,
 ) ([]json.RawMessage, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	allData, err := c.getAllAssets(ctx)
 	if err != nil {
 		return nil, err
@@ -344,6 +391,9 @@ func (c *CTIStixContract) GetAllObjects(
 func (c *CTIStixContract) GetAllObjects2(
 	ctx contractapi.TransactionContextInterface,
 ) ([]byte, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	iterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state by range: %v", err)
@@ -373,6 +423,9 @@ func (c *CTIStixContract) GetAllObjects2(
 func (c *CTIStixContract) GetAllObjects3(
 	ctx contractapi.TransactionContextInterface,
 ) ([]json.RawMessage, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	iterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state by range: %v", err)
@@ -398,6 +451,9 @@ func (c *CTIStixContract) GetAllObjects3(
 func (c *CTIStixContract) GetAllObjects4(
 	ctx contractapi.TransactionContextInterface,
 ) ([]interface{}, error) {
+	if err := c.authorizeRole(ctx, "consumer"); err != nil {
+		return nil, err
+	}
 	iterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get state by range: %v", err)

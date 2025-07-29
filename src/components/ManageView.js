@@ -24,10 +24,6 @@ const ManageView = () => {
     }
   }, [dialogOpen, editedObj]);
 
-  // Debug: Log editedObj to track state changes
-  useEffect(() => {
-    console.log('editedObj:', editedObj);
-  }, [editedObj]);
 
   const handleAdd = () => {
     setEditedObj({ type: '', name: '', description: '' });
@@ -53,10 +49,12 @@ const ManageView = () => {
     setObjectToDelete(null);
   };
 
-  const handleSave = () => {
+  const API_BASE = process.env.REACT_APP_API_URL || '';
+
+  const handleSave = async () => {
     if (!editedObj?.type) return; // Prevent save if no type selected
     const updatedObj = editedObj.id
-      ? { ...editedObj } // Edit existing object
+      ? { ...editedObj }
       : {
           ...editedObj,
           id: `${editedObj.type}--${Date.now()}`,
@@ -64,12 +62,33 @@ const ManageView = () => {
           created: new Date().toISOString(),
           modified: new Date().toISOString()
         };
+
     setBundle(prevBundle => ({
       ...prevBundle,
       objects: editedObj.id
-        ? prevBundle.objects.map(o => o.id === editedObj.id ? updatedObj : o)
+        ? prevBundle.objects.map(o => (o.id === editedObj.id ? updatedObj : o))
         : [...prevBundle.objects, updatedObj]
     }));
+
+    const endpointMap = {
+      indicator: '/api/indicator',
+      relationship: '/api/relationship',
+      sighting: '/api/sighting',
+      bundle: '/api/bundle'
+    };
+    const ep = endpointMap[updatedObj.type];
+    if (ep) {
+      try {
+        await fetch(API_BASE + ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedObj)
+        });
+      } catch (err) {
+        console.error('Failed to submit object', err);
+      }
+    }
+
     setDialogOpen(false);
     setEditedObj(null);
   };

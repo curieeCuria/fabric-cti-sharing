@@ -1,28 +1,40 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { BundleContext } from '../contexts/BundleContext';
+import React, { useEffect, useRef, useState } from 'react';
 import { DataSet, Timeline } from 'vis-timeline/standalone';
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
-import { Select, MenuItem, Chip, Box, Button, Typography } from '@mui/material';
+import { Select, MenuItem, Chip, Box, Button, Typography, TextField } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 const TimelineView = () => {
-  const { bundle } = useContext(BundleContext);
+  const API_BASE = process.env.REACT_APP_API_URL || '';
   const timelineRef = useRef(null);
+  const [objects, setObjects] = useState([]);
   const [filters, setFilters] = useState({ types: [], dateFrom: null, dateTo: null });
   const [timelineInstance, setTimelineInstance] = useState(null);
 
-  const uniqueTypes = [...new Set(bundle.objects.map(obj => obj.type))];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(API_BASE + '/api/objects');
+        const data = await res.json();
+        setObjects(data);
+      } catch (err) {
+        console.error('Failed to load objects', err);
+      }
+    };
+    load();
+  }, [API_BASE]);
+  const uniqueTypes = [...new Set(objects.map(obj => obj.type))];
 
   useEffect(() => {
-    if (!bundle.objects.length) return;
+    if (!objects.length) return;
     const container = timelineRef.current;
     const groups = new DataSet(
       uniqueTypes.map(type => ({ id: type, content: type }))
     );
     const items = new DataSet(
-      bundle.objects
+      objects
         .filter(obj => filters.types.length ? filters.types.includes(obj.type) : true)
         .filter(obj => {
           const date = new Date(obj.created || obj.first_seen);
@@ -47,7 +59,7 @@ const TimelineView = () => {
     });
     setTimelineInstance(timeline);
     return () => timeline.destroy();
-  }, [bundle, filters]);
+  }, [objects, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters({ ...filters, [key]: value });

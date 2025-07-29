@@ -1,0 +1,11 @@
+{
+  "name": "cti-server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "fabric-network": "^2.2.4",
+    "js-yaml": "^4.1.0"
+  }
+}
