@@ -12,3 +12,4 @@ console.log(`Using wallet directory: ${walletPath}`);
 
 // Placeholder for server implementation
 // e.g., Express or Fabric gateway initialization
+

@@ -26,7 +26,6 @@ const ManageView = () => {
 
   // Debug: Log editedObj to track state changes
   useEffect(() => {
-    console.log('editedObj:', editedObj);
   }, [editedObj]);
 
   const handleAdd = () => {
